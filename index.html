@@ -1,1 +1,342 @@
-hello world
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portfolio de Noah Rogier - Étudiant en Technologies de l'Informatique à l'EPHEC">
+    <meta name="author" content="Noah Rogier">
+    <title>Noah Rogier - Portfolio TI EPHEC</title>
+
+    <!-- Styles CSS -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation principale -->
+<nav class="main-nav" id="mainNav">
+    <div class="nav-container">
+        <div class="logo">
+            <span class="logo-text">NR</span>
+            <span class="logo-subtitle">Portfolio</span>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="index.html" class="nav-link active">Accueil</a></li>
+            <li><a href="cv.html" class="nav-link">CV</a></li>
+            <li><a href="projet-pro.html" class="nav-link">Projet Pro</a></li>
+            <li><a href="portfolio-activites.html" class="nav-link">Activités</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+        <div class="burger-menu" id="burgerMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" id="hero">
+    <div class="hero-background">
+        <div class="hero-shape-1"></div>
+        <div class="hero-shape-2"></div>
+        <div class="hero-shape-3"></div>
+    </div>
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-text">
+                <span class="hero-badge fade-in">Étudiant EPHEC 2024</span>
+                <h1 class="hero-title fade-in-up">
+                    Bonjour, je suis <span class="gradient-text">Noah Rogier</span>
+                </h1>
+                <h2 class="hero-subtitle fade-in-up-delay">
+                    Futur Ingénieur en Technologies de l'Information
+                </h2>
+                <p class="hero-description fade-in-up-delay-2">
+                    Passionné par le développement web, la cybersécurité et l'innovation technologique.
+                    Ce portfolio présente mon parcours, mes compétences et mes 60 heures d'activités valorisées.
+                </p>
+                <div class="hero-cta fade-in-up-delay-3">
+                    <a href="cv.html" class="btn btn-primary">
+                        <span>Découvrir mon CV</span>
+                        <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M5 12h14m-7-7l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="portfolio-activites.html" class="btn btn-secondary">
+                        <span>Voir mes activités</span>
+                    </a>
+                </div>
+                <div class="hero-stats fade-in-up-delay-4">
+                    <div class="stat-item">
+                        <span class="stat-value">3</span>
+                        <span class="stat-label">Années d'études</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">12+</span>
+                        <span class="stat-label">Projets réalisés</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">60h</span>
+                        <span class="stat-label">Activités valorisées</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-image-wrapper">
+                    <div class="hero-image-bg"></div>
+                    <img src="images/profile/cv-photo.jpg" alt="Noah Rogier" class="profile-image">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Stats Section -->
+<section class="quick-stats" id="stats">
+    <div class="container">
+        <h2 class="section-title">Portfolio en chiffres</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" data-target="60">0</span>
+                    <span class="stat-label">Heures valorisées</span>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="9" y1="9" x2="15" y2="9"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" data-target="8">0</span>
+                    <span class="stat-label">Thèmes couverts</span>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" data-target="12">0</span>
+                    <span class="stat-label">Activités réalisées</span>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number" data-target="6">0</span>
+                    <span class="stat-label">Analyses réflexives</span>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Preview Section -->
+<section class="preview-section" id="preview">
+    <div class="container">
+        <h2 class="section-title">Découvrez mon parcours</h2>
+        <div class="preview-grid">
+            <div class="preview-card">
+                <div class="preview-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                </div>
+                <h3>Mon CV</h3>
+                <p>Parcours académique, expériences professionnelles et compétences techniques détaillées.</p>
+                <a href="cv.html" class="preview-link">Consulter mon CV →</a>
+            </div>
+            <div class="preview-card">
+                <div class="preview-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <h3>Projet Professionnel</h3>
+                <p>Ma vision, mes ambitions et mon plan de carrière pour les années à venir.</p>
+                <a href="projet-pro.html" class="preview-link">Découvrir mon projet →</a>
+            </div>
+            <div class="preview-card">
+                <div class="preview-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
+                </div>
+                <h3>Portfolio d'Activités</h3>
+                <p>60 heures d'activités valorisées avec analyses réflexives détaillées.</p>
+                <a href="portfolio-activites.html" class="preview-link">Explorer mes activités →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Skills Overview -->
+<section class="skills-overview" id="skills">
+    <div class="container">
+        <h2 class="section-title">Compétences clés</h2>
+        <div class="skills-categories">
+            <div class="skill-category">
+                <h3>Développement</h3>
+                <div class="skill-tags">
+                    <span class="skill-tag">JavaScript</span>
+                    <span class="skill-tag">Python</span>
+                    <span class="skill-tag">React</span>
+                    <span class="skill-tag">Node.js</span>
+                </div>
+            </div>
+            <div class="skill-category">
+                <h3>Base de données</h3>
+                <div class="skill-tags">
+                    <span class="skill-tag">MySQL</span>
+                    <span class="skill-tag">MongoDB</span>
+                    <span class="skill-tag">PostgreSQL</span>
+                </div>
+            </div>
+            <div class="skill-category">
+                <h3>DevOps & Cloud</h3>
+                <div class="skill-tags">
+                    <span class="skill-tag">Docker</span>
+                    <span class="skill-tag">Git</span>
+                    <span class="skill-tag">Linux</span>
+                    <span class="skill-tag">AWS</span>
+                </div>
+            </div>
+            <div class="skill-category">
+                <h3>Soft Skills</h3>
+                <div class="skill-tags">
+                    <span class="skill-tag">Travail d'équipe</span>
+                    <span class="skill-tag">Communication</span>
+                    <span class="skill-tag">Problem Solving</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section" id="contact">
+    <div class="container">
+        <h2 class="section-title">Contact</h2>
+        <div class="contact-content">
+            <p>N'hésitez pas à me contacter pour toute opportunité ou question.</p>
+            <div class="contact-links">
+                <a href="mailto:noah.rogier@ephec.be" class="contact-link">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <span>noah.rogier@ephec.be</span>
+                </a>
+                <a href="https://linkedin.com/in/noah-rogier" class="contact-link" target="_blank">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                        <rect x="2" y="9" width="4" height="12"/>
+                        <circle cx="4" cy="4" r="2"/>
+                    </svg>
+                    <span>LinkedIn</span>
+                </a>
+                <a href="https://github.com/noah-rogier" class="contact-link" target="_blank">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                    </svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2024 Noah Rogier - Portfolio EPHEC | Tous droits réservés</p>
+    </div>
+</footer>
+
+<!-- Scripts JavaScript -->
+<script src="js/main.js"></script>
+<script src="js/navigation.js"></script>
+
+<!-- Animation des nombres -->
+<script>
+    // Animation compteur
+    const counters = document.querySelectorAll('.stat-number');
+    const speed = 200;
+
+    const animateCounters = () => {
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const increment = target / speed;
+
+            const updateCounter = () => {
+                const count = +counter.innerText;
+
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + increment);
+                    setTimeout(updateCounter, 10);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+
+            updateCounter();
+        });
+    };
+
+    // Observer pour déclencher l'animation au scroll
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounters();
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+
+    const statsSection = document.querySelector('.quick-stats');
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+</script>
+</body>
+</html>

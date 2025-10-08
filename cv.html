@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CV de Noah Rogier - Étudiant en Technologies de l'Informatique à l'EPHEC">
+    <title>CV - Noah Rogier | Portfolio EPHEC</title>
+
+    <!-- Styles CSS -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/cv.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="main-nav" id="mainNav">
+    <div class="nav-container">
+        <div class="logo">
+            <span class="logo-text">NR</span>
+            <span class="logo-subtitle">Portfolio</span>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="index.html" class="nav-link">Accueil</a></li>
+            <li><a href="cv.html" class="nav-link active">CV</a></li>
+            <li><a href="projet-pro.html" class="nav-link">Projet Pro</a></li>
+            <li><a href="portfolio-activites.html" class="nav-link">Activités</a></li>
+            <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+        </ul>
+        <div class="burger-menu" id="burgerMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<!-- CV Header -->
+<section class="cv-header">
+    <div class="container">
+        <div class="cv-header-content">
+            <div class="cv-photo-wrapper">
+                <img src="images/profile/cv-photo.jpg" alt="Noah Rogier" class="cv-photo">
+                <div class="cv-photo-decoration"></div>
+            </div>
+            <div class="cv-header-info">
+                <h1 class="cv-name">Noah Rogier</h1>
+                <h2 class="cv-title">Étudiant en Technologies de l'Informatique</h2>
+                <p class="cv-description">
+                    Passionné par le développement web et la cybersécurité, je suis à la recherche
+                    d'opportunités pour mettre en pratique mes compétences techniques et contribuer
+                    à des projets innovants.
+                </p>
+                <div class="cv-contact-info">
+                    <a href="mailto:noah.rogier@ephec.be" class="cv-contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        noah.rogier@ephec.be
+                    </a>
+                    <a href="tel:+32470000000" class="cv-contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        +32 470 00 00 00
+                    </a>
+                    <a href="https://linkedin.com/in/noah-rogier" target="_blank" class="cv-contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                            <rect x="2" y="9" width="4" height="12"/>
+                            <circle cx="4" cy="4" r="2"/>
+                        </svg>
+                        LinkedIn
+                    </a>
+                    <a href="https://github.com/noah-rogier" target="_blank" class="cv-contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+                <div class="cv-actions">
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect x="6" y="14" width="12" height="8"/>
+                        </svg>
+                        Imprimer
+                    </button>
+                    <a href="documents/cv.pdf" download class="btn btn-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Télécharger PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CV Content -->
+<section class="cv-content">
+    <div class="container">
+        <div class="cv-grid">
+            <!-- Colonne principale -->
+            <div class="cv-main">
+                <!-- Formation -->
+                <div class="cv-section">
+                    <h3 class="cv-section-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c0 1.657 3.582 3 8 3s8-1.343 8-3v-5"/>
+                        </svg>
+                        Formation
+                    </h3>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">2021 - 2024</div>
+                            <div class="timeline-content">
+                                <h4>Bachelier en Technologies de l'Informatique</h4>
+                                <p class="timeline-location">EPHEC - École Pratique des Hautes Études Commerciales</p>
+                                <p class="timeline-description">
+                                    Formation complète en informatique couvrant le développement, les réseaux,
+                                    la sécurité et la gestion de projets IT. Spécialisation en développement web
+                                    et cybersécurité.
+                                </p>
+                                <div class="timeline-tags">
+                                    <span class="tag">Développement Web</span>
+                                    <span class="tag">Bases de données</span>
+                                    <span class="tag">Réseaux</span>
+                                    <span class="tag">Sécurité</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2019 - 2021</div>
+                            <div class="timeline-content">
+                                <h4>Certificat d'Enseignement Secondaire Supérieur</h4>
+                                <p class="timeline-location">Athénée Royal de [Ville]</p>
+                                <p class="timeline-description">
+                                    Option Sciences-Mathématiques avec orientation informatique.
+                                    Premiers projets de programmation et découverte du développement.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expériences -->
+                <div class="cv-section">
+                    <h3 class="cv-section-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                        Expériences professionnelles
+                    </h3>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">Été 2023</div>
+                            <div class="timeline-content">
+                                <h4>Stage Développeur Web</h4>
+                                <p class="timeline-location">WebAgency Brussels</p>
+                                <p class="timeline-description">
+                                    Développement d'applications web avec React et Node.js. Participation
+                                    à la conception d'une plateforme e-commerce. Mise en place de tests
+                                    unitaires et intégration continue.
+                                </p>
+                                <div class="timeline-tags">
+                                    <span class="tag">React</span>
+                                    <span class="tag">Node.js</span>
+                                    <span class="tag">MongoDB</span>
+                                    <span class="tag">Jest</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2022 - 2023</div>
+                            <div class="timeline-content">
+                                <h4>Projet Freelance</h4>
+                                <p class="timeline-location">Restaurant Le Gourmet</p>
+                                <p class="timeline-description">
+                                    Création d'un site web vitrine avec système de réservation en ligne.
+                                    Design responsive et optimisation SEO. Formation du personnel à la
+                                    gestion du contenu.
+                                </p>
+                                <div class="timeline-tags">
+                                    <span class="tag">WordPress</span>
+                                    <span class="tag">PHP</span>
+                                    <span class="tag">SEO</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projets -->
+                <div class="cv-section">
+                    <h3 class="cv-section-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="16 18 22 12 16 6"/>
+                            <polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                        Projets académiques
+                    </h3>
+                    <div class="projects-grid">
+                        <div class="project-card">
+                            <h4>Plateforme de Gestion d'Événements</h4>
+                            <p>Application full-stack permettant la création et gestion d'événements
+                                avec système de billetterie intégré.</p>
+                            <div class="project-tech">
+                                <span class="tech-badge">Vue.js</span>
+                                <span class="tech-badge">Express</span>
+                                <span class="tech-badge">PostgreSQL</span>
+                            </div>
+                        </div>
+                        <div class="project-card">
+                            <h4>API REST Sécurisée</h4>
+                            <p>Développement d'une API REST avec authentification JWT, rate limiting
+                                et documentation Swagger.</p>
+                            <div class="project-tech">
+                                <span class="tech-badge">Node.js</span>
+                                <span class="tech-badge">JWT</span>
+                                <span class="tech-badge">Docker</span>
+                            </div>
+                        </div>
+                        <div class="project-card">
+                            <h4>Application Mobile de Suivi Sportif</h4>
+                            <p>Application React Native pour le suivi d'activités sportives avec
+                                géolocalisation et statistiques.</p>
+                            <div class="project-tech">
+                                <span class="tech-badge">React Native</span>
+                                <span class="tech-badge">Firebase</span>
+                                <span class="tech-badge">Charts.js</span>
+                            </div>
+                        </div>
+                        <div class="project-card">
+                            <h4>Système de Monitoring Réseau</h4>
+                            <p>Outil de surveillance réseau en Python avec alertes en temps réel
+                                et tableau de bord web.</p>
+                            <div class="project-tech">
+                                <span class="tech-badge">Python</span>
+                                <span class="tech-badge">Flask</span>
+                                <span class="tech-badge">SocketIO</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne latérale -->
+            <div class="cv-sidebar">
+                <!-- Compétences techniques -->
+                <div class="cv-section">
+                    <h3 class="cv-section-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="16 18 22 12 16 6"/>
+                            <polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                        Compétences techniques
+                    </h3>
+                    <div class="skills-category">
+                        <h4>Langages</h4>
+                        <div class="skill-list">
+                            <div class="skill-item">
+                                <span class="skill-name">JavaScript/TypeScript</span>
+                                <div class="skill-level">
+                                    <div class="skill-progress" style="width: 90%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <span class="skill-name">Python</span>
+                                <div class="skill-level">
+                                    <div class="skill-progress" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <span class="skill-name">Java</span>
+                                <div class="skill-level">
+                                    <div class="skill-progress" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <span class="skill-name">PHP</span>
+                                <div class="skill-level">
+                                    <div class="skill-progress" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <span class="skill-name">SQL</span>
+                                <div class="skill-level">
+                                    <div class="skill-progress" style="width: 80%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="skills-category">
+                        <h4>Frameworks & Libraries</h4>
+                        <div class="skill-tags">
+                            <span class="skill-tag">React</span>
+                            <span class="skill-tag">Vue.js</span>
+                            <span class="skill-tag">Node.js</span>
+                            <span class="skill-tag">Express</span>
+                            <span class="skill-tag">Django</span>
+                            <span class="skill-tag">Laravel</span>
+                        </div>
+                    </div>
+                    <div class="skills-category">
+                        <h4>Bases de données</h4>
+                        <div class="skill-tags">
+                            <span class="skill-tag">MySQL</span>
+                            <span class="skill-tag">PostgreSQL</span>
+                            <span class="skill-tag">MongoDB</span>
+                            <span class="skill-tag">Redis</span>
+                        </div>
+                    </div>
+                    <div class="skills-category">
+                        <h4>Outils & DevOps</h4>
+                        <div class="skill-tags">
+                            <span class="skill-tag">Git</span>
+                            <span class="skill-tag">Docker</span>
+                            <span class="skill-tag">Linux</span>
+                            <span class="skill-tag">CI/CD</span>
+                            <span class="skill-tag">AWS</span>
+                            <span class="skill-tag">Nginx</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Langues -->
+                <div class="cv-section">
+                    <h3 class="cv-section-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                        Langues
+                    </h3>
+                    <div class="languages">
+                        <div class="language-item">
+                            <div class="language-header">
+                                <span class="language-name">Français</span>
+                                <span class="language-level">Langue maternelle</span>
+                            </div>
+                            <div class="language-bar">
+                                <div class="language-progress" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="language-item">
+                            <div class="language-header">
+                                <span class="language-name">Anglais</span>
+                                <span class="language-level">B2 - Intermédiaire avancé</span>
+                            </div>
+                            <div class="language-bar">
+                                <div class="language-progress" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div class="language-item">
+                            <div class="language-header">
+                                <span class="language-name">Néerlandais</span>
+                                <span class="language-level">A2 - Élémentaire</span>
+                            </div>
+                            <div class="language-bar">
+                                <div class="language-progress" style="width: 40%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certifications -->
+                <div class="cv-section">
+                    <h3 class="cv-section-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        Certifications
+                    </h3>
+                    <div class="certifications">
+                        <div class="certification-item">
+                            <div class="certification-icon">🏆</div>
+                            <div class="certification-content">
+                                <h4>React Developer</h4>
+                                <p>OpenClassrooms - 2023</p>
+                            </div>
+                        </div>
+                        <div class="certification-item">
+                            <div class="certification-icon">🏆</div>
+                            <div class="certification-content">
+                                <h4>Python for Data Science</h4>
+                                <p>Coursera - 2023</p>
+                            </div>
+                        </div>
+                        <div class="certification-item">
+                            <div class="certification-icon">🏆</div>
+                            <div class="certification-content">
+                                <h4>AWS Cloud Practitioner</h4>
+                                <p>Amazon - 2024</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Centres d'intérêt -->
+                <div class="cv-section">
+                    <h3 class="cv-section-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        Centres d'intérêt
+                    </h3>
+                    <div class="interests">
+                        <span class="interest-tag">🎮 Gaming</span>
+                        <span class="interest-tag">🤖 Intelligence Artificielle</span>
+                        <span class="interest-tag">🔐 Cybersécurité</span>
+                        <span class="interest-tag">📱 Nouvelles technologies</span>
+                        <span class="interest-tag">🏃 Sport</span>
+                        <span class="interest-tag">🎬 Cinéma</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2024 Noah Rogier - Portfolio EPHEC | Tous droits réservés</p>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="js/main.js"></script>
+<script src="js/navigation.js"></script>
+</body>
+</html>

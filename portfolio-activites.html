@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portfolio d'activités - 60 heures valorisées | Noah Rogier EPHEC">
+    <title>Portfolio d'Activités - Noah Rogier | EPHEC</title>
+
+    <!-- Styles CSS -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/portfolio-activites.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="main-nav" id="mainNav">
+    <div class="nav-container">
+        <div class="logo">
+            <span class="logo-text">NR</span>
+            <span class="logo-subtitle">Portfolio</span>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="index.html" class="nav-link">Accueil</a></li>
+            <li><a href="cv.html" class="nav-link">CV</a></li>
+            <li><a href="projet-pro.html" class="nav-link">Projet Pro</a></li>
+            <li><a href="portfolio-activites.html" class="nav-link active">Activités</a></li>
+            <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+        </ul>
+        <div class="burger-menu" id="burgerMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<!-- Header avec statistiques -->
+<section class="activities-header">
+    <div class="container">
+        <h1 class="page-title">Portfolio d'Activités</h1>
+        <p class="page-subtitle">60 heures d'activités valorisées avec analyses réflexives</p>
+
+        <!-- Dashboard de statistiques -->
+        <div class="stats-dashboard">
+            <div class="stat-card primary">
+                <div class="stat-value">
+                    <span id="totalHours">0</span>
+                    <span class="stat-unit">/60h</span>
+                </div>
+                <div class="stat-label">Heures totales</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="hoursProgress"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <span id="totalThemes">0</span>
+                    <span class="stat-unit">/6 min</span>
+                </div>
+                <div class="stat-label">Thèmes couverts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <span id="totalActivities">0</span>
+                    <span class="stat-unit">/6 min</span>
+                </div>
+                <div class="stat-label">Activités réalisées</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    <span id="completedActivities">0</span>
+                </div>
+                <div class="stat-label">Complétées</div>
+            </div>
+        </div>
+
+        <!-- Alertes de validation -->
+        <div id="validationAlerts" class="alerts-container"></div>
+    </div>
+</section>
+
+<!-- Contrôles et filtres -->
+<section class="activities-controls">
+    <div class="container">
+        <div class="controls-wrapper">
+            <div class="controls-left">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Ajouter une activité
+                </button>
+                <button class="btn btn-secondary" onclick="exportData()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Exporter
+                </button>
+                <button class="btn btn-secondary" onclick="generateReport()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    Rapport
+                </button>
+            </div>
+            <div class="controls-right">
+                <select id="themeFilter" class="filter-select" onchange="filterActivities()">
+                    <option value="">Tous les thèmes</option>
+                    <option value="Développement">Développement</option>
+                    <option value="Réseaux">Réseaux</option>
+                    <option value="Sécurité">Sécurité</option>
+                    <option value="Électronique/IoT">Électronique/IoT</option>
+                    <option value="Soft skills">Soft skills</option>
+                    <option value="Langues">Langues</option>
+                    <option value="Communication">Communication</option>
+                    <option value="Droit IT">Droit IT</option>
+                </select>
+                <select id="statusFilter" class="filter-select" onchange="filterActivities()">
+                    <option value="">Tous les statuts</option>
+                    <option value="Complété">Complété</option>
+                    <option value="En cours">En cours</option>
+                    <option value="À faire">À faire</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tableau des activités -->
+<section class="activities-table">
+    <div class="container">
+        <div class="table-responsive">
+            <table id="activitiesTable">
+                <thead>
+                <tr>
+                    <th>Thème</th>
+                    <th>Activité</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Heures</th>
+                    <th>Preuve</th>
+                    <th>Statut</th>
+                    <th>Analyse</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="activitiesTableBody">
+                <!-- Les activités seront ajoutées ici par JavaScript -->
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" opacity="0.3">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                <h3>Aucune activité trouvée</h3>
+                <p>Commencez par ajouter votre première activité</p>
+                <button class="btn btn-primary" onclick="openAddModal()">Ajouter une activité</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Vue par thème -->
+<section class="activities-by-theme">
+    <div class="container">
+        <h2 class="section-title">Répartition par thème</h2>
+        <div id="themeCards" class="theme-cards-grid">
+            <!-- Les cartes de thèmes seront générées par JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Modal Ajout/Édition d'activité -->
+<div class="modal" id="activityModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Ajouter une activité</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="activityForm" onsubmit="handleSubmit(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="activityTheme">Thème *</label>
+                    <select id="activityTheme" required>
+                        <option value="">Sélectionner un thème</option>
+                        <option value="Développement">Développement</option>
+                        <option value="Réseaux">Réseaux</option>
+                        <option value="Sécurité">Sécurité</option>
+                        <option value="Électronique/IoT">Électronique/IoT</option>
+                        <option value="Soft skills">Soft skills</option>
+                        <option value="Langues">Langues</option>
+                        <option value="Communication">Communication</option>
+                        <option value="Droit IT">Droit IT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="activityType">Type d'activité *</label>
+                    <select id="activityType" required onchange="updateHoursLimit()">
+                        <option value="">Sélectionner un type</option>
+                        <option value="hackathon">Hackathon</option>
+                        <option value="formation_ligne">Formation en ligne</option>
+                        <option value="formation_presentiel">Formation présentiel</option>
+                        <option value="conference">Conférence</option>
+                        <option value="visite">Visite d'entreprise</option>
+                        <option value="salon">Salon informatique</option>
+                        <option value="job_day">IT Job Day</option>
+                        <option value="projet">Projet personnel</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="activityName">Nom de l'activité *</label>
+                <input type="text" id="activityName" required placeholder="Ex: Formation React avancé">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="activityDate">Date de réalisation *</label>
+                    <input type="date" id="activityDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="activityHours">Heures valorisées * <span id="hoursHelp" class="help-text"></span></label>
+                    <input type="number" id="activityHours" required min="1" max="10" placeholder="Entre 1 et 10">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="activityProof">Preuve *</label>
+                <input type="text" id="activityProof" required placeholder="Ex: Certificat Udemy, Badge Credly, Photo de l'événement">
+            </div>
+
+            <div class="form-group">
+                <label for="activityStatus">Statut *</label>
+                <select id="activityStatus" required>
+                    <option value="À faire">À faire</option>
+                    <option value="En cours">En cours</option>
+                    <option value="Complété">Complété</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="activityAnalysis">Analyse réflexive</label>
+                <textarea id="activityAnalysis" rows="6" placeholder="Décrivez votre expérience, ce que vous avez appris, et le lien avec votre projet professionnel..."></textarea>
+                <div class="char-count">
+                    <span id="charCount">0</span> / 2000 caractères minimum recommandés
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">Sauvegarder</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Analyse Réflexive -->
+<div class="modal" id="analysisModal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2>Analyse Réflexive</h2>
+            <button class="modal-close" onclick="closeAnalysisModal()">&times;</button>
+        </div>
+        <div class="analysis-content" id="analysisContent">
+            <!-- Le contenu sera injecté ici -->
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="editAnalysis()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Modifier l'analyse
+            </button>
+            <button class="btn btn-secondary" onclick="printAnalysis()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="6 9 6 2 18 2 18 9"/>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                </svg>
+                Imprimer
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2024 Noah Rogier - Portfolio EPHEC | Tous droits réservés</p>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="js/main.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/activities-simple.js"></script>
+</body>
+</html>

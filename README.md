@@ -1,4 +1,4 @@
-# Portfolio Noah Rogier - EPHEC 2024-2025
+# Portfolio Noah Rogier - EPHEC 2025-2026
 
 Portfolio de fin d'études en Technologies de l'Informatique.
 
@@ -16,7 +16,6 @@ Portfolio de fin d'études en Technologies de l'Informatique.
 ```
 
 ## TODO pour personnaliser
-Cherche `<!-- TODO:` dans les fichiers HTML pour trouver tous les éléments à remplacer :
 - Photo de profil → `images/profile/cv-photo.jpg`
 - Email, téléphone, LinkedIn, GitHub
 - École secondaire et dates

@@ -8,537 +8,396 @@
 // ===================================
 // Supabase Config
 // ===================================
-const SUPABASE_URL = 'https://vqeqenhmudypkbneeccs.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_uFYg2zsE2UJHhDwCDoNxtw_P7cL0xJJ';
+var SUPABASE_URL = 'https://vqeqenhmudypkbneeccs.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_uFYg2zsE2UJHhDwCDoNxtw_P7cL0xJJ';
 
-const supabase = {
-    async fetch(endpoint, options = {}) {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
+var supabase = {
+    fetch: async function(endpoint, options) {
+        options = options || {};
+        var res = await fetch(SUPABASE_URL + '/rest/v1/' + endpoint, {
             headers: {
                 'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
                 'Content-Type': 'application/json',
-                'Prefer': options.prefer || 'return=representation',
-                ...options.headers
+                'Prefer': options.prefer || 'return=representation'
             },
             method: options.method || 'GET',
             body: options.body ? JSON.stringify(options.body) : undefined
         });
         if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Supabase error: ${err}`);
+            var err = await res.text();
+            throw new Error('Supabase: ' + err);
         }
         return res.json();
     },
-
-    async getAll() {
-        return this.fetch('activities?select=*&order=date.desc');
-    },
-
-    async insert(data) {
-        return this.fetch('activities', {
-            method: 'POST',
-            body: data
-        });
-    },
-
-    async update(id, data) {
-        return this.fetch(`activities?id=eq.${id}`, {
-            method: 'PATCH',
-            body: data
-        });
-    },
-
-    async remove(id) {
-        return this.fetch(`activities?id=eq.${id}`, {
-            method: 'DELETE'
-        });
-    }
+    getAll: function() { return this.fetch('activities?select=*&order=date.desc'); },
+    insert: function(data) { return this.fetch('activities', { method: 'POST', body: data }); },
+    update: function(id, data) { return this.fetch('activities?id=eq.' + id, { method: 'PATCH', body: data }); },
+    remove: function(id) { return this.fetch('activities?id=eq.' + id, { method: 'DELETE' }); }
 };
 
 // ===================================
-// Configuration et contraintes
+// Configuration
 // ===================================
-const CONFIG = {
+var CONFIG = {
     maxTotalHours: 60,
     minThemes: 6,
     minActivities: 6,
     maxHoursPerTheme: 10,
     maxHoursPerActivity: 10,
-
     activityTypes: {
         'hackathon': { label: 'Hackathon', maxCount: 3, maxHours: 10 },
         'formation_ligne': { label: 'Formation en ligne', maxCount: 2, maxHours: 10 },
         'formation_presentiel': { label: 'Formation présentiel', maxCount: 3, maxHours: 10 },
         'conference': { label: 'Conférence', maxCount: 1, maxHours: 10 },
-        'visite': { label: 'Visite d\'entreprise', maxCount: 1, maxHours: 10 },
+        'visite': { label: "Visite d'entreprise", maxCount: 1, maxHours: 10 },
         'salon': { label: 'Salon informatique', maxCount: 1, maxHours: 10 },
         'job_day': { label: 'IT Job Day', maxCount: 1, maxHours: 10 },
         'projet': { label: 'Projet personnel', maxCount: null, maxHours: 10 },
         'autre': { label: 'Autre', maxCount: null, maxHours: 10 }
     },
-
-    themes: [
-        'Développement',
-        'Réseaux',
-        'Sécurité',
-        'Électronique/IoT',
-        'Soft skills',
-        'Langues',
-        'Communication',
-        'Droit IT'
-    ],
-
+    themes: ['Développement','Réseaux','Sécurité','Électronique/IoT','Soft skills','Langues','Communication','Droit IT'],
     statuses: {
-        'À faire': { class: 'todo', icon: '' },
-        'En cours': { class: 'progress', icon: '' },
-        'Complété': { class: 'completed', icon: '' }
+        'À faire': { class: 'todo' },
+        'En cours': { class: 'progress' },
+        'Complété': { class: 'completed' }
+    }
+};
+
+function cleanStatus(s) {
+    if (!s) return 'À faire';
+    var c = s.replace(/[^\p{L}\p{N}\s\u00C0-\u024F]/gu, '').trim();
+    if (c === 'Complété' || c.indexOf('omplété') !== -1) return 'Complété';
+    if (c === 'En cours' || c.indexOf('cours') !== -1) return 'En cours';
+    if (c === 'À faire' || c.indexOf('faire') !== -1) return 'À faire';
+    return 'À faire';
+}
+
+function Activity(d) {
+    this.id = d.id || null;
+    this.theme = d.theme || '';
+    this.name = d.name || '';
+    this.type = d.type || 'autre';
+    this.date = d.date || '';
+    this.hours = parseInt(d.hours) || 0;
+    this.proof = d.proof || '';
+    this.status = cleanStatus(d.status);
+    this.analysis = d.analysis || '';
+    this.proofImages = d.proof_images || d.proofImages || [];
+}
+
+Activity.prototype.validate = function() {
+    var e = [];
+    if (!this.theme) e.push('Le thème est requis');
+    if (!this.name) e.push("Le nom est requis");
+    if (!this.type) e.push("Le type est requis");
+    if (!this.date) e.push('La date est requise');
+    if (this.hours < 1) e.push('Heures > 0 requises');
+    if (this.hours > CONFIG.maxHoursPerActivity) e.push('Max ' + CONFIG.maxHoursPerActivity + 'h par activité');
+    if (!this.proof) e.push('Une preuve est requise');
+    return e;
+};
+
+Activity.prototype.toSupabase = function() {
+    return {
+        theme: this.theme, name: this.name, type: this.type, date: this.date,
+        hours: this.hours, proof: this.proof, status: this.status,
+        analysis: this.analysis, proof_images: this.proofImages,
+        updated_at: new Date().toISOString()
+    };
+};
+
+// ===================================
+// Manager
+// ===================================
+var ActivityManager = {
+    activities: [],
+    currentEditId: null,
+
+    loadData: async function() {
+        try {
+            var rows = await supabase.getAll();
+            console.log('[Supabase] Loaded ' + rows.length + ' rows');
+            this.activities = [];
+            for (var i = 0; i < rows.length; i++) {
+                this.activities.push(new Activity(rows[i]));
+            }
+        } catch (err) {
+            console.error('[Supabase] Error:', err);
+            this.activities = [];
+        }
+    },
+
+    add: async function(data) {
+        var a = new Activity(data);
+        var errs = this.validateConstraints(a);
+        if (errs.length > 0) throw new Error(errs.join('\n'));
+        var result = await supabase.insert(a.toSupabase());
+        this.activities.push(new Activity(result[0]));
+    },
+
+    update: async function(id, data) {
+        var idx = -1;
+        for (var i = 0; i < this.activities.length; i++) { if (this.activities[i].id === id) { idx = i; break; } }
+        if (idx === -1) throw new Error('Non trouvée');
+        var merged = {};
+        var old = this.activities[idx];
+        merged.theme = data.theme || old.theme;
+        merged.name = data.name || old.name;
+        merged.type = data.type || old.type;
+        merged.date = data.date || old.date;
+        merged.hours = data.hours || old.hours;
+        merged.proof = data.proof || old.proof;
+        merged.status = data.status || old.status;
+        merged.analysis = data.analysis !== undefined ? data.analysis : old.analysis;
+        merged.proofImages = data.proofImages || old.proofImages;
+        merged.id = id;
+        var upd = new Activity(merged);
+        var temp = this.activities.slice(); temp.splice(idx, 1);
+        var errs = this.validateConstraints(upd, temp);
+        if (errs.length > 0) throw new Error(errs.join('\n'));
+        var result = await supabase.update(id, upd.toSupabase());
+        this.activities[idx] = new Activity(result[0]);
+    },
+
+    delete: async function(id) {
+        var idx = -1;
+        for (var i = 0; i < this.activities.length; i++) { if (this.activities[i].id === id) { idx = i; break; } }
+        if (idx === -1) return false;
+        await supabase.remove(id);
+        this.activities.splice(idx, 1);
+        return true;
+    },
+
+    validateConstraints: function(activity, list) {
+        list = list || this.activities;
+        var errors = activity.validate();
+        var totalH = parseInt(activity.hours) || 0;
+        var themeH = parseInt(activity.hours) || 0;
+        for (var i = 0; i < list.length; i++) {
+            totalH += parseInt(list[i].hours) || 0;
+            if (list[i].theme === activity.theme) themeH += parseInt(list[i].hours) || 0;
+        }
+        if (totalH > CONFIG.maxTotalHours) errors.push('Dépassement ' + CONFIG.maxTotalHours + 'h (total: ' + totalH + 'h)');
+        if (themeH > CONFIG.maxHoursPerTheme) errors.push('Max ' + CONFIG.maxHoursPerTheme + 'h pour ' + activity.theme + ' (total: ' + themeH + 'h)');
+        var tc = CONFIG.activityTypes[activity.type];
+        if (tc && tc.maxCount) {
+            var cnt = 1;
+            for (var j = 0; j < list.length; j++) { if (list[j].type === activity.type) cnt++; }
+            if (cnt > tc.maxCount) errors.push('Max ' + tc.maxCount + ' ' + tc.label);
+        }
+        return errors;
+    },
+
+    getStats: function() {
+        var totalH = 0, completed = 0, themes = {}, themeH = {};
+        for (var i = 0; i < this.activities.length; i++) {
+            var a = this.activities[i];
+            var h = parseInt(a.hours) || 0;
+            totalH += h;
+            themes[a.theme] = true;
+            if (a.status === 'Complété') completed++;
+            themeH[a.theme] = (themeH[a.theme] || 0) + h;
+        }
+        var tc = 0; for (var t in themes) tc++;
+        return { totalHours: totalH, totalActivities: this.activities.length, completedActivities: completed, totalThemes: tc, themeHours: themeH };
+    },
+
+    getValidationMessages: function() {
+        var s = this.getStats(), m = [];
+        if (s.totalHours < CONFIG.maxTotalHours) m.push({ type:'warning', text:'Il manque ' + (CONFIG.maxTotalHours - s.totalHours) + 'h' });
+        else if (s.totalHours > CONFIG.maxTotalHours) m.push({ type:'error', text:'Dépassement de ' + (s.totalHours - CONFIG.maxTotalHours) + 'h' });
+        else m.push({ type:'success', text:'Objectif de 60h atteint!' });
+        if (s.totalThemes < CONFIG.minThemes) m.push({ type:'warning', text:'Il manque ' + (CONFIG.minThemes - s.totalThemes) + ' thème(s)' });
+        if (s.totalActivities < CONFIG.minActivities) m.push({ type:'warning', text:'Il manque ' + (CONFIG.minActivities - s.totalActivities) + ' activité(s)' });
+        return m;
+    },
+
+    generateReport: function() {
+        var s = this.getStats();
+        var r = "# Portfolio - Noah Rogier\n\nHeures: " + s.totalHours + "/60\nActivités: " + s.totalActivities + "\nThèmes: " + s.totalThemes + "\n\n";
+        for (var i = 0; i < this.activities.length; i++) {
+            var a = this.activities[i];
+            r += "## " + a.name + "\n- " + a.theme + " | " + a.hours + "h | " + a.status + "\n- Preuve: " + a.proof + "\n\n";
+        }
+        return r;
     }
 };
 
 // ===================================
-// Classe Activity
+// UI
 // ===================================
-class Activity {
-    constructor(data) {
-        this.id = data.id || null;
-        this.theme = data.theme;
-        this.name = data.name;
-        this.type = data.type;
-        this.date = data.date;
-        this.hours = parseInt(data.hours);
-        this.proof = data.proof;
-        this.status = data.status || 'À faire';
-        this.analysis = data.analysis || '';
-        this.proofImages = data.proof_images || data.proofImages || [];
-        this.createdAt = data.created_at || data.createdAt || new Date().toISOString();
-        this.updatedAt = data.updated_at || data.updatedAt || new Date().toISOString();
-    }
+var UI = {
+    manager: ActivityManager,
+    pendingImages: [],
 
-    validate() {
-        const errors = [];
-        if (!this.theme) errors.push('Le thème est requis');
-        if (!this.name) errors.push('Le nom de l\'activité est requis');
-        if (!this.type) errors.push('Le type d\'activité est requis');
-        if (!this.date) errors.push('La date est requise');
-        if (!this.hours || this.hours < 1) errors.push('Les heures doivent être supérieures à 0');
-        if (this.hours > CONFIG.maxHoursPerActivity) {
-            errors.push(`Maximum ${CONFIG.maxHoursPerActivity} heures par activité`);
-        }
-        if (!this.proof) errors.push('Une preuve est requise');
-        return errors;
-    }
-
-    // Format pour Supabase (snake_case)
-    toSupabase() {
-        return {
-            theme: this.theme,
-            name: this.name,
-            type: this.type,
-            date: this.date,
-            hours: this.hours,
-            proof: this.proof,
-            status: this.status,
-            analysis: this.analysis,
-            proof_images: this.proofImages,
-            updated_at: new Date().toISOString()
-        };
-    }
-}
-
-// ===================================
-// Gestionnaire d'activités
-// ===================================
-class ActivityManager {
-    constructor() {
-        this.activities = [];
-        this.currentEditId = null;
-    }
-
-    async loadData() {
-        try {
-            const rows = await supabase.getAll();
-            this.activities = rows.map(row => new Activity(row));
-        } catch (error) {
-            console.error('Erreur chargement Supabase:', error);
-            this.activities = [];
-        }
-    }
-
-    async add(activityData) {
-        const activity = new Activity(activityData);
-        const errors = this.validateConstraints(activity);
-        if (errors.length > 0) {
-            throw new Error(errors.join('\n'));
-        }
-
-        const result = await supabase.insert(activity.toSupabase());
-        const newActivity = new Activity(result[0]);
-        this.activities.push(newActivity);
-        return newActivity;
-    }
-
-    async update(id, activityData) {
-        const index = this.activities.findIndex(a => a.id === id);
-        if (index === -1) throw new Error('Activité non trouvée');
-
-        const updatedActivity = new Activity({ ...this.activities[index], ...activityData, id });
-        const tempActivities = [...this.activities];
-        tempActivities.splice(index, 1);
-
-        const errors = this.validateConstraints(updatedActivity, tempActivities);
-        if (errors.length > 0) {
-            throw new Error(errors.join('\n'));
-        }
-
-        const result = await supabase.update(id, updatedActivity.toSupabase());
-        this.activities[index] = new Activity(result[0]);
-        return this.activities[index];
-    }
-
-    async delete(id) {
-        const index = this.activities.findIndex(a => a.id === id);
-        if (index === -1) return false;
-
-        await supabase.remove(id);
-        this.activities.splice(index, 1);
-        return true;
-    }
-
-    validateConstraints(activity, customActivities = null) {
-        const activities = customActivities || this.activities;
-        const errors = activity.validate();
-
-        const totalHours = activities.reduce((sum, a) => sum + a.hours, 0) + activity.hours;
-        if (totalHours > CONFIG.maxTotalHours) {
-            errors.push(`Dépassement du maximum de ${CONFIG.maxTotalHours}h (actuellement ${totalHours}h)`);
-        }
-
-        const themeHours = activities
-            .filter(a => a.theme === activity.theme)
-            .reduce((sum, a) => sum + a.hours, 0) + activity.hours;
-        if (themeHours > CONFIG.maxHoursPerTheme) {
-            errors.push(`Maximum ${CONFIG.maxHoursPerTheme}h pour le thème ${activity.theme} (actuellement ${themeHours}h)`);
-        }
-
-        const typeConfig = CONFIG.activityTypes[activity.type];
-        if (typeConfig && typeConfig.maxCount) {
-            const typeCount = activities.filter(a => a.type === activity.type).length + 1;
-            if (typeCount > typeConfig.maxCount) {
-                errors.push(`Maximum ${typeConfig.maxCount} activité(s) de type ${typeConfig.label}`);
-            }
-        }
-
-        return errors;
-    }
-
-    getStats() {
-        const stats = {
-            totalHours: 0,
-            totalActivities: this.activities.length,
-            completedActivities: 0,
-            themes: new Set(),
-            themeHours: {},
-            typeCount: {}
-        };
-
-        this.activities.forEach(activity => {
-            stats.totalHours += parseInt(activity.hours) || 0;
-            stats.themes.add(activity.theme);
-            if (activity.status === 'Complété') stats.completedActivities++;
-            if (!stats.themeHours[activity.theme]) stats.themeHours[activity.theme] = 0;
-            stats.themeHours[activity.theme] += activity.hours;
-            if (!stats.typeCount[activity.type]) stats.typeCount[activity.type] = 0;
-            stats.typeCount[activity.type]++;
-        });
-
-        stats.totalThemes = stats.themes.size;
-        stats.isValid = stats.totalHours === CONFIG.maxTotalHours &&
-            stats.totalThemes >= CONFIG.minThemes &&
-            stats.totalActivities >= CONFIG.minActivities;
-
-        return stats;
-    }
-
-    getValidationMessages() {
-        const stats = this.getStats();
-        const messages = [];
-
-        if (stats.totalHours < CONFIG.maxTotalHours) {
-            messages.push({ type: 'warning', text: `Il manque ${CONFIG.maxTotalHours - stats.totalHours} heures pour atteindre les ${CONFIG.maxTotalHours}h requises` });
-        } else if (stats.totalHours > CONFIG.maxTotalHours) {
-            messages.push({ type: 'error', text: `Dépassement de ${stats.totalHours - CONFIG.maxTotalHours} heures (maximum ${CONFIG.maxTotalHours}h)` });
-        } else {
-            messages.push({ type: 'success', text: '✅ Objectif de 60 heures atteint!' });
-        }
-
-        if (stats.totalThemes < CONFIG.minThemes) {
-            messages.push({ type: 'warning', text: `Il manque ${CONFIG.minThemes - stats.totalThemes} thème(s) (minimum ${CONFIG.minThemes})` });
-        }
-
-        if (stats.totalActivities < CONFIG.minActivities) {
-            messages.push({ type: 'warning', text: `Il manque ${CONFIG.minActivities - stats.totalActivities} activité(s) (minimum ${CONFIG.minActivities})` });
-        }
-
-        return messages;
-    }
-
-    generateReport() {
-        const stats = this.getStats();
-        let report = `# Portfolio d'Activités - Noah Rogier\n\n`;
-        report += `Date d'export: ${new Date().toLocaleDateString('fr-FR')}\n\n`;
-        report += `## Statistiques\n`;
-        report += `- Total heures: ${stats.totalHours}/${CONFIG.maxTotalHours}h\n`;
-        report += `- Nombre d'activités: ${stats.totalActivities}\n`;
-        report += `- Activités complétées: ${stats.completedActivities}\n`;
-        report += `- Thèmes couverts: ${stats.totalThemes}/${CONFIG.minThemes}\n\n`;
-
-        report += `## Répartition par thème\n`;
-        Object.entries(stats.themeHours).forEach(([theme, hours]) => {
-            report += `- ${theme}: ${hours}h\n`;
-        });
-
-        report += `\n## Liste des activités\n\n`;
-        this.activities.forEach(activity => {
-            report += `### ${activity.name}\n`;
-            report += `- **Thème**: ${activity.theme}\n`;
-            report += `- **Type**: ${CONFIG.activityTypes[activity.type]?.label || activity.type}\n`;
-            report += `- **Date**: ${activity.date}\n`;
-            report += `- **Heures**: ${activity.hours}h\n`;
-            report += `- **Statut**: ${activity.status}\n`;
-            report += `- **Preuve**: ${activity.proof}\n`;
-            if (activity.analysis) {
-                report += `- **Analyse**: ${activity.analysis.substring(0, 200)}...\n`;
-            }
-            report += `\n`;
-        });
-
-        return report;
-    }
-}
-
-// ===================================
-// Interface utilisateur
-// ===================================
-const UI = {
-    manager: null,
-
-    async init() {
-        this.manager = new ActivityManager();
-        this.pendingImages = [];
+    init: async function() {
+        console.log('[UI] init start');
         await this.manager.loadData();
+        console.log('[UI] activities loaded:', this.manager.activities.length);
         this.bindEvents();
         this.render();
+        console.log('[UI] init done');
     },
 
-    bindEvents() {
-        const form = document.getElementById('activityForm');
-        if (form) {
-            form.addEventListener('submit', (e) => this.handleSubmit(e));
-        }
+    bindEvents: function() {
+        var self = this;
+        var form = document.getElementById('activityForm');
+        if (form) form.addEventListener('submit', function(e) { self.handleSubmit(e); });
 
-        const analysisTextarea = document.getElementById('activityAnalysis');
-        if (analysisTextarea) {
-            analysisTextarea.addEventListener('input', (e) => {
-                document.getElementById('charCount').textContent = e.target.value.length;
-            });
-        }
+        var ta = document.getElementById('activityAnalysis');
+        if (ta) ta.addEventListener('input', function(e) {
+            var cc = document.getElementById('charCount');
+            if (cc) cc.textContent = e.target.value.length;
+        });
 
-        const photoInput = document.getElementById('proofPhotos');
-        if (photoInput) {
-            photoInput.addEventListener('change', (e) => this.handlePhotoUpload(e));
-        }
+        var pi = document.getElementById('proofPhotos');
+        if (pi) pi.addEventListener('change', function(e) { self.handlePhotoUpload(e); });
 
-        const dropZone = document.getElementById('photoUploadZone');
-        if (dropZone) {
-            ['dragenter', 'dragover'].forEach(evt => {
-                dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-            });
-            ['dragleave', 'drop'].forEach(evt => {
-                dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
-            });
-            dropZone.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                if (dt.files.length) { photoInput.files = dt.files; photoInput.dispatchEvent(new Event('change')); }
-            });
+        var dz = document.getElementById('photoUploadZone');
+        if (dz && pi) {
+            dz.addEventListener('dragenter', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+            dz.addEventListener('dragover', function(e) { e.preventDefault(); });
+            dz.addEventListener('dragleave', function(e) { e.preventDefault(); dz.classList.remove('dragover'); });
+            dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if (e.dataTransfer.files.length) { pi.files = e.dataTransfer.files; pi.dispatchEvent(new Event('change')); } });
         }
     },
 
-    handlePhotoUpload(e) {
-        const files = Array.from(e.target.files);
-        const maxSize = 800;
-
-        files.forEach(file => {
-            if (!file.type.startsWith('image/')) return;
-            if (file.size > 5 * 1024 * 1024) {
-                this.showNotification('Image trop lourde (max 5 Mo)', 'error');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > maxSize) { h = h * (maxSize / w); w = maxSize; }
-                    if (h > maxSize) { w = w * (maxSize / h); h = maxSize; }
-                    canvas.width = w;
-                    canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const compressed = canvas.toDataURL('image/jpeg', 0.7);
-                    this.pendingImages.push(compressed);
-                    this.renderPhotoPreview();
+    handlePhotoUpload: function(e) {
+        var self = this;
+        Array.from(e.target.files).forEach(function(file) {
+            if (!file.type.startsWith('image/') || file.size > 5242880) return;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                var img = new Image();
+                img.onload = function() {
+                    var c = document.createElement('canvas'), w = img.width, h = img.height;
+                    if (w > 800) { h = h * (800/w); w = 800; }
+                    if (h > 800) { w = w * (800/h); h = 800; }
+                    c.width = w; c.height = h;
+                    c.getContext('2d').drawImage(img, 0, 0, w, h);
+                    self.pendingImages.push(c.toDataURL('image/jpeg', 0.7));
+                    self.renderPhotoPreview();
                 };
-                img.src = event.target.result;
+                img.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         });
-
         e.target.value = '';
     },
 
-    renderPhotoPreview() {
-        const container = document.getElementById('photoPreview');
-        if (!container) return;
-        container.innerHTML = this.pendingImages.map((src, index) => `
-            <div class="photo-thumb">
-                <img src="${src}" alt="Preuve ${index + 1}">
-                <button type="button" class="photo-remove" onclick="UI.removePhoto(${index})" title="Supprimer">×</button>
-            </div>
-        `).join('');
+    renderPhotoPreview: function() {
+        var c = document.getElementById('photoPreview');
+        if (!c) return;
+        var h = '';
+        for (var i = 0; i < this.pendingImages.length; i++) {
+            h += '<div class="photo-thumb"><img src="' + this.pendingImages[i] + '"><button type="button" class="photo-remove" onclick="UI.removePhoto(' + i + ')">&times;</button></div>';
+        }
+        c.innerHTML = h;
     },
 
-    removePhoto(index) {
-        this.pendingImages.splice(index, 1);
-        this.renderPhotoPreview();
-    },
+    removePhoto: function(i) { this.pendingImages.splice(i, 1); this.renderPhotoPreview(); },
 
-    render() {
-        this.updateStats();
-        this.updateValidationAlerts();
+    render: function() {
+        var s = this.manager.getStats();
+        console.log('[UI] render - stats:', JSON.stringify(s));
+
+        // Stats
+        var el;
+        el = document.getElementById('totalHours'); if (el) el.textContent = s.totalHours;
+        el = document.getElementById('totalThemes'); if (el) el.textContent = s.totalThemes;
+        el = document.getElementById('totalActivities'); if (el) el.textContent = s.totalActivities;
+        el = document.getElementById('completedActivities'); if (el) el.textContent = s.completedActivities;
+
+        var pb = document.getElementById('hoursProgress');
+        if (pb) {
+            pb.style.width = Math.min((s.totalHours / CONFIG.maxTotalHours) * 100, 100) + '%';
+            pb.style.background = s.totalHours === CONFIG.maxTotalHours ? 'var(--success-color)' : s.totalHours > CONFIG.maxTotalHours ? 'var(--error-color)' : 'var(--gradient-primary)';
+        }
+
+        // Alerts
+        var msgs = this.manager.getValidationMessages();
+        var ac = document.getElementById('validationAlerts');
+        if (ac) {
+            var ah = '';
+            for (var i = 0; i < msgs.length; i++) ah += '<div class="alert alert-' + msgs[i].type + '">' + msgs[i].text + '</div>';
+            ac.innerHTML = ah;
+        }
+
+        // Table
         this.renderTable();
         this.renderThemeCards();
     },
 
-    updateStats() {
-        const stats = this.manager.getStats();
-        document.getElementById('totalHours').textContent = stats.totalHours;
-        document.getElementById('totalThemes').textContent = stats.totalThemes;
-        document.getElementById('totalActivities').textContent = stats.totalActivities;
-        document.getElementById('completedActivities').textContent = stats.completedActivities;
-
-        const progress = (stats.totalHours / CONFIG.maxTotalHours) * 100;
-        const progressBar = document.getElementById('hoursProgress');
-        if (progressBar) {
-            progressBar.style.width = Math.min(progress, 100) + '%';
-            if (stats.totalHours === CONFIG.maxTotalHours) {
-                progressBar.style.background = 'var(--success-color)';
-            } else if (stats.totalHours > CONFIG.maxTotalHours) {
-                progressBar.style.background = 'var(--error-color)';
-            } else {
-                progressBar.style.background = 'var(--gradient-primary)';
-            }
-        }
-    },
-
-    updateValidationAlerts() {
-        const messages = this.manager.getValidationMessages();
-        const alertsContainer = document.getElementById('validationAlerts');
-        if (!alertsContainer) return;
-        alertsContainer.innerHTML = messages.map(msg => `
-            <div class="alert alert-${msg.type}">${msg.text}</div>
-        `).join('');
-    },
-
-    renderTable() {
-        const tbody = document.getElementById('activitiesTableBody');
+    renderTable: function() {
+        var tbody = document.getElementById('activitiesTableBody');
         if (!tbody) return;
+        var acts = this.getFilteredActivities();
+        console.log('[UI] renderTable - showing:', acts.length, 'activities');
 
-        const activities = this.getFilteredActivities();
-
-        if (activities.length === 0) {
+        if (acts.length === 0) {
             document.getElementById('activitiesTable').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'flex';
+            var es = document.getElementById('emptyState'); if (es) es.style.display = 'flex';
             return;
         }
-
         document.getElementById('activitiesTable').style.display = 'table';
-        document.getElementById('emptyState').style.display = 'none';
+        var es2 = document.getElementById('emptyState'); if (es2) es2.style.display = 'none';
 
-        tbody.innerHTML = activities.map(activity => `
-            <tr>
-                <td><span class="theme-badge">${activity.theme}</span></td>
-                <td><strong>${activity.name}</strong></td>
-                <td>${CONFIG.activityTypes[activity.type]?.label || activity.type}</td>
-                <td>${new Date(activity.date).toLocaleDateString('fr-FR')}</td>
-                <td><strong>${activity.hours}h</strong></td>
-                <td>${activity.proof}${activity.proofImages && activity.proofImages.length > 0 ? ` <span title="${activity.proofImages.length} photo(s)">📷${activity.proofImages.length}</span>` : ''}</td>
-                <td>
-                    <span class="status-badge status-${CONFIG.statuses[activity.status]?.class || 'todo'}">
-                        ${CONFIG.statuses[activity.status]?.icon || '⏳'} ${activity.status}
-                    </span>
-                </td>
-                <td>
-                    ${activity.analysis ?
-            `<button class="btn-link" onclick="UI.showAnalysis(${activity.id})">Voir</button>` :
-            `<button class="btn-link" onclick="UI.editActivity(${activity.id})">Ajouter</button>`
+        var html = '';
+        for (var i = 0; i < acts.length; i++) {
+            var a = acts[i];
+            var tl = (CONFIG.activityTypes[a.type] || {}).label || a.type;
+            var sc = (CONFIG.statuses[a.status] || {}).class || 'todo';
+            var ds = ''; try { ds = new Date(a.date).toLocaleDateString('fr-FR'); } catch(e) { ds = a.date; }
+            var pi = (a.proofImages && a.proofImages.length > 0) ? ' 📷' + a.proofImages.length : '';
+
+            html += '<tr>';
+            html += '<td><span class="theme-badge">' + a.theme + '</span></td>';
+            html += '<td><strong>' + a.name + '</strong></td>';
+            html += '<td>' + tl + '</td>';
+            html += '<td>' + ds + '</td>';
+            html += '<td><strong>' + a.hours + 'h</strong></td>';
+            html += '<td>' + a.proof + pi + '</td>';
+            html += '<td><span class="status-badge status-' + sc + '">' + a.status + '</span></td>';
+            html += '<td>' + (a.analysis ? '<button class="btn-link" onclick="UI.showAnalysis(' + a.id + ')">Voir</button>' : '<button class="btn-link" onclick="UI.editActivity(' + a.id + ')">Ajouter</button>') + '</td>';
+            html += '<td><button class="btn-icon" onclick="UI.editActivity(' + a.id + ')">✏️</button> <button class="btn-icon" onclick="UI.deleteActivity(' + a.id + ')">🗑️</button></td>';
+            html += '</tr>';
         }
-                </td>
-                <td>
-                    <button class="btn-icon" onclick="UI.editActivity(${activity.id})" title="Modifier">✏️</button>
-                    <button class="btn-icon" onclick="UI.deleteActivity(${activity.id})" title="Supprimer">🗑️</button>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = html;
     },
 
-    renderThemeCards() {
-        const container = document.getElementById('themeCards');
-        if (!container) return;
-
-        const stats = this.manager.getStats();
-
-        container.innerHTML = CONFIG.themes.map(theme => {
-            const hours = stats.themeHours[theme] || 0;
-            const activities = this.manager.activities.filter(a => a.theme === theme);
-            const progress = (hours / CONFIG.maxHoursPerTheme) * 100;
-
-            return `
-                <div class="theme-card">
-                    <div class="theme-card-header">
-                        <h3>${theme}</h3>
-                        <span class="theme-hours">${hours}/${CONFIG.maxHoursPerTheme}h</span>
-                    </div>
-                    <div class="theme-progress">
-                        <div class="theme-progress-bar" style="width: ${progress}%"></div>
-                    </div>
-                    <div class="theme-stats">
-                        <span>${activities.length} activité(s)</span>
-                        <span>${activities.filter(a => a.status === 'Complété').length} complétée(s)</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
+    renderThemeCards: function() {
+        var c = document.getElementById('themeCards');
+        if (!c) return;
+        var s = this.manager.getStats(), html = '';
+        for (var i = 0; i < CONFIG.themes.length; i++) {
+            var t = CONFIG.themes[i], h = s.themeHours[t] || 0;
+            var cnt = 0, comp = 0;
+            for (var j = 0; j < this.manager.activities.length; j++) {
+                if (this.manager.activities[j].theme === t) { cnt++; if (this.manager.activities[j].status === 'Complété') comp++; }
+            }
+            html += '<div class="theme-card"><div class="theme-card-header"><h3>' + t + '</h3><span class="theme-hours">' + h + '/' + CONFIG.maxHoursPerTheme + 'h</span></div>';
+            html += '<div class="theme-progress"><div class="theme-progress-bar" style="width:' + (h/CONFIG.maxHoursPerTheme*100) + '%"></div></div>';
+            html += '<div class="theme-stats"><span>' + cnt + ' activité(s)</span><span>' + comp + ' complétée(s)</span></div></div>';
+        }
+        c.innerHTML = html;
     },
 
-    getFilteredActivities() {
-        let activities = [...this.manager.activities];
-        const themeFilter = document.getElementById('themeFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        if (themeFilter && themeFilter.value && themeFilter.value !== '') {
-            activities = activities.filter(a => a.theme === themeFilter.value);
-        }
-        if (statusFilter && statusFilter.value && statusFilter.value !== '') {
-            activities = activities.filter(a => a.status === statusFilter.value);
-        }
-        return activities;
+    getFilteredActivities: function() {
+        var all = this.manager.activities.slice();
+        var tf = document.getElementById('themeFilter');
+        var sf = document.getElementById('statusFilter');
+        var tv = (tf && tf.value) || '';
+        var sv = (sf && sf.value) || '';
+
+        if (tv) { var f = []; for (var i = 0; i < all.length; i++) { if (all[i].theme === tv) f.push(all[i]); } all = f; }
+        if (sv) { var f2 = []; for (var j = 0; j < all.length; j++) { if (all[j].status === sv) f2.push(all[j]); } all = f2; }
+        return all;
     },
 
-    async handleSubmit(e) {
+    handleSubmit: async function(e) {
         e.preventDefault();
-
-        const activityData = {
+        var d = {
             theme: document.getElementById('activityTheme').value,
             name: document.getElementById('activityName').value,
             type: document.getElementById('activityType').value,
@@ -547,235 +406,115 @@ const UI = {
             proof: document.getElementById('activityProof').value,
             status: document.getElementById('activityStatus').value,
             analysis: document.getElementById('activityAnalysis').value,
-            proofImages: this.pendingImages || []
+            proofImages: this.pendingImages.slice()
         };
-
         try {
-            if (this.manager.currentEditId) {
-                await this.manager.update(this.manager.currentEditId, activityData);
-                this.showNotification('Activité mise à jour avec succès', 'success');
-            } else {
-                await this.manager.add(activityData);
-                this.showNotification('Activité ajoutée avec succès', 'success');
-            }
+            if (this.manager.currentEditId) { await this.manager.update(this.manager.currentEditId, d); this.showNotification('Mise à jour OK', 'success'); }
+            else { await this.manager.add(d); this.showNotification('Activité ajoutée', 'success'); }
             this.closeModal();
             this.render();
-        } catch (error) {
-            this.showNotification(error.message, 'error');
-        }
+        } catch (err) { this.showNotification(err.message, 'error'); }
     },
 
-    editActivity(id) {
-        const activity = this.manager.activities.find(a => a.id === id);
-        if (!activity) return;
-
+    editActivity: function(id) {
+        var a = null;
+        for (var i = 0; i < this.manager.activities.length; i++) { if (this.manager.activities[i].id === id) { a = this.manager.activities[i]; break; } }
+        if (!a) return;
         this.manager.currentEditId = id;
-        this.pendingImages = [...(activity.proofImages || [])];
-
-        document.getElementById('modalTitle').textContent = 'Modifier l\'activité';
-        document.getElementById('activityTheme').value = activity.theme;
-        document.getElementById('activityName').value = activity.name;
-        document.getElementById('activityType').value = activity.type;
-        document.getElementById('activityDate').value = activity.date;
-        document.getElementById('activityHours').value = activity.hours;
-        document.getElementById('activityProof').value = activity.proof;
-        document.getElementById('activityStatus').value = activity.status;
-        document.getElementById('activityAnalysis').value = activity.analysis;
-
-        const charCount = document.getElementById('charCount');
-        if (charCount) charCount.textContent = activity.analysis.length;
-
+        this.pendingImages = (a.proofImages || []).slice();
+        document.getElementById('modalTitle').textContent = "Modifier l'activité";
+        document.getElementById('activityTheme').value = a.theme;
+        document.getElementById('activityName').value = a.name;
+        document.getElementById('activityType').value = a.type;
+        document.getElementById('activityDate').value = a.date;
+        document.getElementById('activityHours').value = a.hours;
+        document.getElementById('activityProof').value = a.proof;
+        document.getElementById('activityStatus').value = a.status;
+        document.getElementById('activityAnalysis').value = a.analysis;
+        var cc = document.getElementById('charCount'); if (cc) cc.textContent = a.analysis.length;
         this.renderPhotoPreview();
         this.updateHoursLimit();
         this.openModal();
     },
 
-    async deleteActivity(id) {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cette activité ?')) {
-            try {
-                if (await this.manager.delete(id)) {
-                    this.showNotification('Activité supprimée', 'success');
-                    this.render();
-                }
-            } catch (error) {
-                this.showNotification('Erreur lors de la suppression', 'error');
-            }
-        }
+    deleteActivity: async function(id) {
+        if (!confirm('Supprimer cette activité ?')) return;
+        try { await this.manager.delete(id); this.showNotification('Supprimée', 'success'); this.render(); }
+        catch (err) { this.showNotification(err.message, 'error'); }
     },
 
-    showAnalysis(id) {
-        const activity = this.manager.activities.find(a => a.id === id);
-        if (!activity) return;
-
-        const modal = document.getElementById('analysisModal');
-        const content = document.getElementById('analysisContent');
+    showAnalysis: function(id) {
+        var a = null;
+        for (var i = 0; i < this.manager.activities.length; i++) { if (this.manager.activities[i].id === id) { a = this.manager.activities[i]; break; } }
+        if (!a) return;
+        var modal = document.getElementById('analysisModal'), content = document.getElementById('analysisContent');
         if (!modal || !content) return;
-
-        content.innerHTML = `
-            <h3>${activity.name}</h3>
-            <div class="analysis-meta">
-                <span><strong>Thème:</strong> ${activity.theme}</span>
-                <span><strong>Date:</strong> ${new Date(activity.date).toLocaleDateString('fr-FR')}</span>
-                <span><strong>Durée:</strong> ${activity.hours}h</span>
-            </div>
-            <div class="analysis-text">
-                ${activity.analysis ?
-            `<div class="analysis-content">${activity.analysis.replace(/\n/g, '<br>')}</div>` :
-            '<p class="text-muted">Aucune analyse réflexive n\'a été rédigée pour cette activité.</p>'
+        var ds = ''; try { ds = new Date(a.date).toLocaleDateString('fr-FR'); } catch(e) { ds = a.date; }
+        var h = '<h3>' + a.name + '</h3>';
+        h += '<div class="analysis-meta"><span><strong>Thème:</strong> ' + a.theme + '</span><span><strong>Date:</strong> ' + ds + '</span><span><strong>Durée:</strong> ' + a.hours + 'h</span></div>';
+        h += '<div class="analysis-text">' + (a.analysis ? '<div class="analysis-content">' + a.analysis.replace(/\n/g,'<br>') + '</div>' : '<p class="text-muted">Pas d\'analyse réflexive.</p>') + '</div>';
+        h += '<div class="analysis-proof"><strong>Preuve:</strong> ' + a.proof + '</div>';
+        if (a.proofImages && a.proofImages.length > 0) {
+            h += '<div class="analysis-photos"><strong>Photos:</strong><div class="photo-gallery">';
+            for (var j = 0; j < a.proofImages.length; j++) h += '<a href="' + a.proofImages[j] + '" target="_blank" class="gallery-item"><img src="' + a.proofImages[j] + '"></a>';
+            h += '</div></div>';
         }
-            </div>
-            <div class="analysis-proof">
-                <strong>Preuve:</strong> ${activity.proof}
-            </div>
-            ${activity.proofImages && activity.proofImages.length > 0 ? `
-                <div class="analysis-photos">
-                    <strong>Photos de preuves :</strong>
-                    <div class="photo-gallery">
-                        ${activity.proofImages.map((src, i) => `
-                            <a href="${src}" target="_blank" class="gallery-item">
-                                <img src="${src}" alt="Preuve ${i + 1}">
-                            </a>
-                        `).join('')}
-                    </div>
-                </div>
-            ` : ''}
-        `;
-
+        content.innerHTML = h;
         modal.classList.add('active');
     },
 
-    openModal() {
-        const modal = document.getElementById('activityModal');
-        if (modal) modal.classList.add('active');
+    openModal: function() { var m = document.getElementById('activityModal'); if (m) m.classList.add('active'); },
+    closeModal: function() {
+        var m = document.getElementById('activityModal');
+        if (m) { m.classList.remove('active'); document.getElementById('activityForm').reset(); this.manager.currentEditId = null; this.pendingImages = []; this.renderPhotoPreview(); document.getElementById('modalTitle').textContent = 'Ajouter une activité'; }
     },
+    closeAnalysisModal: function() { var m = document.getElementById('analysisModal'); if (m) m.classList.remove('active'); },
 
-    closeModal() {
-        const modal = document.getElementById('activityModal');
-        if (modal) {
-            modal.classList.remove('active');
-            document.getElementById('activityForm').reset();
-            this.manager.currentEditId = null;
-            this.pendingImages = [];
-            this.renderPhotoPreview();
-            document.getElementById('modalTitle').textContent = 'Ajouter une activité';
+    updateHoursLimit: function() {
+        var type = document.getElementById('activityType').value, ht = document.getElementById('hoursHelp');
+        if (!type || !ht) return;
+        var tc = CONFIG.activityTypes[type];
+        if (!tc) return;
+        ht.textContent = '(max ' + tc.maxHours + 'h)';
+        if (tc.maxCount) {
+            var cnt = 0;
+            for (var i = 0; i < this.manager.activities.length; i++) { if (this.manager.activities[i].type === type) cnt++; }
+            if (this.manager.currentEditId) { for (var j = 0; j < this.manager.activities.length; j++) { if (this.manager.activities[j].id === this.manager.currentEditId && this.manager.activities[j].type === type) { cnt--; break; } } }
+            ht.textContent += cnt >= tc.maxCount ? ' - Limite atteinte' : ' - ' + (tc.maxCount - cnt) + ' restante(s)';
+            ht.style.color = cnt >= tc.maxCount ? 'var(--error-color)' : 'var(--text-light)';
         }
     },
 
-    closeAnalysisModal() {
-        const modal = document.getElementById('analysisModal');
-        if (modal) modal.classList.remove('active');
+    exportData: function() {
+        var b = new Blob([JSON.stringify(this.manager.activities, null, 2)], {type:'application/json'});
+        var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'activites_' + new Date().toISOString().split('T')[0] + '.json'; a.click();
     },
 
-    updateHoursLimit() {
-        const type = document.getElementById('activityType').value;
-        const helpText = document.getElementById('hoursHelp');
-        if (!type || !helpText) return;
-
-        const typeConfig = CONFIG.activityTypes[type];
-        if (typeConfig) {
-            helpText.textContent = `(max ${typeConfig.maxHours}h)`;
-            if (typeConfig.maxCount) {
-                let currentCount = this.manager.activities.filter(a => a.type === type).length;
-                if (this.manager.currentEditId) {
-                    const curr = this.manager.activities.find(a => a.id === this.manager.currentEditId);
-                    if (curr && curr.type === type) currentCount--;
-                }
-                if (currentCount >= typeConfig.maxCount) {
-                    helpText.textContent += ` - Limite atteinte (${typeConfig.maxCount} max)`;
-                    helpText.style.color = 'var(--error-color)';
-                } else {
-                    helpText.textContent += ` - ${typeConfig.maxCount - currentCount} restante(s)`;
-                    helpText.style.color = 'var(--text-light)';
-                }
-            }
-        }
+    generateReport: function() {
+        var b = new Blob([this.manager.generateReport()], {type:'text/markdown'});
+        var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'rapport_' + new Date().toISOString().split('T')[0] + '.md'; a.click();
     },
 
-    exportData() {
-        const json = JSON.stringify(this.manager.activities, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `portfolio_activites_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.showNotification('Données exportées avec succès', 'success');
-    },
-
-    generateReport() {
-        const report = this.manager.generateReport();
-        const blob = new Blob([report], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `rapport_portfolio_${new Date().toISOString().split('T')[0]}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.showNotification('Rapport généré avec succès', 'success');
-    },
-
-    showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            padding: 15px 20px;
-            background: ${type === 'success' ? 'var(--success-color)' :
-            type === 'error' ? 'var(--error-color)' : 'var(--info-color)'};
-            color: white;
-            border-radius: 8px;
-            box-shadow: var(--shadow-lg);
-            z-index: 9999;
-            animation: slideInRight 0.3s ease;
-        `;
-
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => { document.body.removeChild(notification); }, 300);
-        }, 3000);
+    showNotification: function(msg, type) {
+        var n = document.createElement('div'); n.textContent = msg;
+        var bg = type === 'success' ? '#48bb78' : type === 'error' ? '#f56565' : '#4299e1';
+        n.style.cssText = 'position:fixed;top:100px;right:20px;padding:15px 20px;background:' + bg + ';color:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:9999;';
+        document.body.appendChild(n);
+        setTimeout(function() { n.style.opacity = '0'; n.style.transition = 'opacity .3s'; setTimeout(function() { if (n.parentNode) n.parentNode.removeChild(n); }, 300); }, 3000);
     }
 };
 
-// ===================================
-// Fonctions globales pour les onclick
-// ===================================
-window.openAddModal = function() {
-    UI.manager.currentEditId = null;
-    UI.pendingImages = [];
-    document.getElementById('modalTitle').textContent = 'Ajouter une activité';
-    document.getElementById('activityForm').reset();
-    UI.renderPhotoPreview();
-    UI.openModal();
-};
-
+// Globales
+window.openAddModal = function() { UI.manager.currentEditId = null; UI.pendingImages = []; document.getElementById('modalTitle').textContent = 'Ajouter une activité'; document.getElementById('activityForm').reset(); UI.renderPhotoPreview(); UI.openModal(); };
 window.closeModal = function() { UI.closeModal(); };
 window.closeAnalysisModal = function() { UI.closeAnalysisModal(); };
 window.filterActivities = function() { UI.renderTable(); };
 window.exportData = function() { UI.exportData(); };
 window.generateReport = function() { UI.generateReport(); };
 window.updateHoursLimit = function() { UI.updateHoursLimit(); };
-
-window.editAnalysis = function() {
-    const modal = document.getElementById('analysisModal');
-    const activityId = modal?.dataset.activityId;
-    if (activityId) {
-        UI.closeAnalysisModal();
-        UI.editActivity(parseInt(activityId));
-    }
-};
-
+window.handleSubmit = function(e) { e.preventDefault(); UI.handleSubmit(e); };
 window.printAnalysis = function() { window.print(); };
 
-// ===================================
-// Initialisation
-// ===================================
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('activitiesTable')) {
-        UI.init();
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('activitiesTable')) UI.init();
 });

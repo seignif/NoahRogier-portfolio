@@ -243,7 +243,7 @@ class ActivityManager {
         };
 
         this.activities.forEach(activity => {
-            stats.totalHours += activity.hours;
+            stats.totalHours += parseInt(activity.hours) || 0;
             stats.themes.add(activity.theme);
             if (activity.status === 'Complété') stats.completedActivities++;
             if (!stats.themeHours[activity.theme]) stats.themeHours[activity.theme] = 0;

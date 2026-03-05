@@ -90,9 +90,9 @@ const CONFIG = {
     ],
 
     statuses: {
-        'À faire': { class: 'todo', icon: '⏳' },
-        'En cours': { class: 'progress', icon: '🔄' },
-        'Complété': { class: 'completed', icon: '✅' }
+        'À faire': { class: 'todo' },
+        'En cours': { class: 'progress' },
+        'Complété': { class: 'completed' }
     }
 };
 

@@ -2,7 +2,59 @@
  * activities-simple.js
  * Gestion complète des activités du portfolio EPHEC
  * Noah Rogier - 2025
+ * Stockage: Supabase (PostgreSQL)
  */
+
+// ===================================
+// Supabase Config
+// ===================================
+const SUPABASE_URL = 'https://vqeqenhmudypkbneeccs.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_uFYg2zsE2UJHhDwCDoNxtw_P7cL0xJJ';
+
+const supabase = {
+    async fetch(endpoint, options = {}) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': options.prefer || 'return=representation',
+                ...options.headers
+            },
+            method: options.method || 'GET',
+            body: options.body ? JSON.stringify(options.body) : undefined
+        });
+        if (!res.ok) {
+            const err = await res.text();
+            throw new Error(`Supabase error: ${err}`);
+        }
+        return res.json();
+    },
+
+    async getAll() {
+        return this.fetch('activities?select=*&order=date.desc');
+    },
+
+    async insert(data) {
+        return this.fetch('activities', {
+            method: 'POST',
+            body: data
+        });
+    },
+
+    async update(id, data) {
+        return this.fetch(`activities?id=eq.${id}`, {
+            method: 'PATCH',
+            body: data
+        });
+    },
+
+    async remove(id) {
+        return this.fetch(`activities?id=eq.${id}`, {
+            method: 'DELETE'
+        });
+    }
+};
 
 // ===================================
 // Configuration et contraintes
@@ -49,7 +101,7 @@ const CONFIG = {
 // ===================================
 class Activity {
     constructor(data) {
-        this.id = data.id || Date.now();
+        this.id = data.id || null;
         this.theme = data.theme;
         this.name = data.name;
         this.type = data.type;
@@ -58,14 +110,13 @@ class Activity {
         this.proof = data.proof;
         this.status = data.status || 'À faire';
         this.analysis = data.analysis || '';
-        this.proofImages = data.proofImages || []; // Photos de preuves en base64
-        this.createdAt = data.createdAt || new Date().toISOString();
-        this.updatedAt = data.updatedAt || new Date().toISOString();
+        this.proofImages = data.proof_images || data.proofImages || [];
+        this.createdAt = data.created_at || data.createdAt || new Date().toISOString();
+        this.updatedAt = data.updated_at || data.updatedAt || new Date().toISOString();
     }
 
     validate() {
         const errors = [];
-
         if (!this.theme) errors.push('Le thème est requis');
         if (!this.name) errors.push('Le nom de l\'activité est requis');
         if (!this.type) errors.push('Le type d\'activité est requis');
@@ -75,13 +126,12 @@ class Activity {
             errors.push(`Maximum ${CONFIG.maxHoursPerActivity} heures par activité`);
         }
         if (!this.proof) errors.push('Une preuve est requise');
-
         return errors;
     }
 
-    toJSON() {
+    // Format pour Supabase (snake_case)
+    toSupabase() {
         return {
-            id: this.id,
             theme: this.theme,
             name: this.name,
             type: this.type,
@@ -90,9 +140,8 @@ class Activity {
             proof: this.proof,
             status: this.status,
             analysis: this.analysis,
-            proofImages: this.proofImages,
-            createdAt: this.createdAt,
-            updatedAt: this.updatedAt
+            proof_images: this.proofImages,
+            updated_at: new Date().toISOString()
         };
     }
 }
@@ -103,60 +152,37 @@ class Activity {
 class ActivityManager {
     constructor() {
         this.activities = [];
-        this.loadFromStorage();
         this.currentEditId = null;
     }
 
-    loadFromStorage() {
-        const stored = localStorage.getItem('portfolio_activities');
-        if (stored) {
-            try {
-                const data = JSON.parse(stored);
-                this.activities = data.map(item => new Activity(item));
-            } catch (error) {
-                console.error('Erreur de chargement des données:', error);
-                this.activities = [];
-            }
+    async loadData() {
+        try {
+            const rows = await supabase.getAll();
+            this.activities = rows.map(row => new Activity(row));
+        } catch (error) {
+            console.error('Erreur chargement Supabase:', error);
+            this.activities = [];
         }
-
-        // Le tableau démarre vide — ajoute tes vraies activités
     }
 
-    loadSampleData() {
-        // Pas de données fictives — ajoute tes vraies activités via l'interface
-    }
-
-    save() {
-        localStorage.setItem('portfolio_activities', JSON.stringify(this.activities));
-    }
-
-    add(activityData) {
+    async add(activityData) {
         const activity = new Activity(activityData);
         const errors = this.validateConstraints(activity);
-
         if (errors.length > 0) {
             throw new Error(errors.join('\n'));
         }
 
-        this.activities.push(activity);
-        this.save();
-        return activity;
+        const result = await supabase.insert(activity.toSupabase());
+        const newActivity = new Activity(result[0]);
+        this.activities.push(newActivity);
+        return newActivity;
     }
 
-    update(id, activityData) {
+    async update(id, activityData) {
         const index = this.activities.findIndex(a => a.id === id);
-        if (index === -1) {
-            throw new Error('Activité non trouvée');
-        }
+        if (index === -1) throw new Error('Activité non trouvée');
 
-        const updatedActivity = new Activity({
-            ...this.activities[index].toJSON(),
-            ...activityData,
-            id: id,
-            updatedAt: new Date().toISOString()
-        });
-
-        // Validation temporaire sans l'activité actuelle
+        const updatedActivity = new Activity({ ...this.activities[index], ...activityData, id });
         const tempActivities = [...this.activities];
         tempActivities.splice(index, 1);
 
@@ -165,41 +191,36 @@ class ActivityManager {
             throw new Error(errors.join('\n'));
         }
 
-        this.activities[index] = updatedActivity;
-        this.save();
-        return updatedActivity;
+        const result = await supabase.update(id, updatedActivity.toSupabase());
+        this.activities[index] = new Activity(result[0]);
+        return this.activities[index];
     }
 
-    delete(id) {
+    async delete(id) {
         const index = this.activities.findIndex(a => a.id === id);
-        if (index !== -1) {
-            this.activities.splice(index, 1);
-            this.save();
-            return true;
-        }
-        return false;
+        if (index === -1) return false;
+
+        await supabase.remove(id);
+        this.activities.splice(index, 1);
+        return true;
     }
 
     validateConstraints(activity, customActivities = null) {
         const activities = customActivities || this.activities;
         const errors = activity.validate();
 
-        // Vérifier le total des heures
         const totalHours = activities.reduce((sum, a) => sum + a.hours, 0) + activity.hours;
         if (totalHours > CONFIG.maxTotalHours) {
             errors.push(`Dépassement du maximum de ${CONFIG.maxTotalHours}h (actuellement ${totalHours}h)`);
         }
 
-        // Vérifier les heures par thème
         const themeHours = activities
             .filter(a => a.theme === activity.theme)
             .reduce((sum, a) => sum + a.hours, 0) + activity.hours;
-
         if (themeHours > CONFIG.maxHoursPerTheme) {
             errors.push(`Maximum ${CONFIG.maxHoursPerTheme}h pour le thème ${activity.theme} (actuellement ${themeHours}h)`);
         }
 
-        // Vérifier les limites par type d'activité
         const typeConfig = CONFIG.activityTypes[activity.type];
         if (typeConfig && typeConfig.maxCount) {
             const typeCount = activities.filter(a => a.type === activity.type).length + 1;
@@ -224,35 +245,19 @@ class ActivityManager {
         this.activities.forEach(activity => {
             stats.totalHours += activity.hours;
             stats.themes.add(activity.theme);
-
-            if (activity.status === 'Complété') {
-                stats.completedActivities++;
-            }
-
-            // Heures par thème
-            if (!stats.themeHours[activity.theme]) {
-                stats.themeHours[activity.theme] = 0;
-            }
+            if (activity.status === 'Complété') stats.completedActivities++;
+            if (!stats.themeHours[activity.theme]) stats.themeHours[activity.theme] = 0;
             stats.themeHours[activity.theme] += activity.hours;
-
-            // Compte par type
-            if (!stats.typeCount[activity.type]) {
-                stats.typeCount[activity.type] = 0;
-            }
+            if (!stats.typeCount[activity.type]) stats.typeCount[activity.type] = 0;
             stats.typeCount[activity.type]++;
         });
 
         stats.totalThemes = stats.themes.size;
-        stats.isValid = this.checkValidity();
-
-        return stats;
-    }
-
-    checkValidity() {
-        const stats = this.getStats();
-        return stats.totalHours === CONFIG.maxTotalHours &&
+        stats.isValid = stats.totalHours === CONFIG.maxTotalHours &&
             stats.totalThemes >= CONFIG.minThemes &&
             stats.totalActivities >= CONFIG.minActivities;
+
+        return stats;
     }
 
     getValidationMessages() {
@@ -260,50 +265,22 @@ class ActivityManager {
         const messages = [];
 
         if (stats.totalHours < CONFIG.maxTotalHours) {
-            messages.push({
-                type: 'warning',
-                text: `Il manque ${CONFIG.maxTotalHours - stats.totalHours} heures pour atteindre les ${CONFIG.maxTotalHours}h requises`
-            });
+            messages.push({ type: 'warning', text: `Il manque ${CONFIG.maxTotalHours - stats.totalHours} heures pour atteindre les ${CONFIG.maxTotalHours}h requises` });
         } else if (stats.totalHours > CONFIG.maxTotalHours) {
-            messages.push({
-                type: 'error',
-                text: `Dépassement de ${stats.totalHours - CONFIG.maxTotalHours} heures (maximum ${CONFIG.maxTotalHours}h)`
-            });
+            messages.push({ type: 'error', text: `Dépassement de ${stats.totalHours - CONFIG.maxTotalHours} heures (maximum ${CONFIG.maxTotalHours}h)` });
         } else {
-            messages.push({
-                type: 'success',
-                text: '✅ Objectif de 60 heures atteint!'
-            });
+            messages.push({ type: 'success', text: '✅ Objectif de 60 heures atteint!' });
         }
 
         if (stats.totalThemes < CONFIG.minThemes) {
-            messages.push({
-                type: 'warning',
-                text: `Il manque ${CONFIG.minThemes - stats.totalThemes} thème(s) (minimum ${CONFIG.minThemes})`
-            });
+            messages.push({ type: 'warning', text: `Il manque ${CONFIG.minThemes - stats.totalThemes} thème(s) (minimum ${CONFIG.minThemes})` });
         }
 
         if (stats.totalActivities < CONFIG.minActivities) {
-            messages.push({
-                type: 'warning',
-                text: `Il manque ${CONFIG.minActivities - stats.totalActivities} activité(s) (minimum ${CONFIG.minActivities})`
-            });
+            messages.push({ type: 'warning', text: `Il manque ${CONFIG.minActivities - stats.totalActivities} activité(s) (minimum ${CONFIG.minActivities})` });
         }
 
         return messages;
-    }
-
-    exportToJSON() {
-        return JSON.stringify({
-            metadata: {
-                exportDate: new Date().toISOString(),
-                version: '1.0',
-                student: 'Noah Rogier',
-                school: 'EPHEC'
-            },
-            stats: this.getStats(),
-            activities: this.activities
-        }, null, 2);
     }
 
     generateReport() {
@@ -325,7 +302,7 @@ class ActivityManager {
         this.activities.forEach(activity => {
             report += `### ${activity.name}\n`;
             report += `- **Thème**: ${activity.theme}\n`;
-            report += `- **Type**: ${CONFIG.activityTypes[activity.type].label}\n`;
+            report += `- **Type**: ${CONFIG.activityTypes[activity.type]?.label || activity.type}\n`;
             report += `- **Date**: ${activity.date}\n`;
             report += `- **Heures**: ${activity.hours}h\n`;
             report += `- **Statut**: ${activity.status}\n`;
@@ -346,36 +323,32 @@ class ActivityManager {
 const UI = {
     manager: null,
 
-    init() {
+    async init() {
         this.manager = new ActivityManager();
         this.pendingImages = [];
+        await this.manager.loadData();
         this.bindEvents();
         this.render();
     },
 
     bindEvents() {
-        // Gestion du formulaire
         const form = document.getElementById('activityForm');
         if (form) {
             form.addEventListener('submit', (e) => this.handleSubmit(e));
         }
 
-        // Gestion du textarea pour compter les caractères
         const analysisTextarea = document.getElementById('activityAnalysis');
         if (analysisTextarea) {
             analysisTextarea.addEventListener('input', (e) => {
-                const count = e.target.value.length;
-                document.getElementById('charCount').textContent = count;
+                document.getElementById('charCount').textContent = e.target.value.length;
             });
         }
 
-        // Gestion upload photos
         const photoInput = document.getElementById('proofPhotos');
         if (photoInput) {
             photoInput.addEventListener('change', (e) => this.handlePhotoUpload(e));
         }
 
-        // Drag & drop sur la zone d'upload
         const dropZone = document.getElementById('photoUploadZone');
         if (dropZone) {
             ['dragenter', 'dragover'].forEach(evt => {
@@ -393,7 +366,7 @@ const UI = {
 
     handlePhotoUpload(e) {
         const files = Array.from(e.target.files);
-        const maxSize = 800; // Redimensionner à max 800px
+        const maxSize = 800;
 
         files.forEach(file => {
             if (!file.type.startsWith('image/')) return;
@@ -404,7 +377,6 @@ const UI = {
 
             const reader = new FileReader();
             reader.onload = (event) => {
-                // Redimensionner l'image pour ne pas exploser le localStorage
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
@@ -423,14 +395,12 @@ const UI = {
             reader.readAsDataURL(file);
         });
 
-        // Reset input pour pouvoir re-sélectionner le même fichier
         e.target.value = '';
     },
 
     renderPhotoPreview() {
         const container = document.getElementById('photoPreview');
         if (!container) return;
-
         container.innerHTML = this.pendingImages.map((src, index) => `
             <div class="photo-thumb">
                 <img src="${src}" alt="Preuve ${index + 1}">
@@ -453,19 +423,15 @@ const UI = {
 
     updateStats() {
         const stats = this.manager.getStats();
-
         document.getElementById('totalHours').textContent = stats.totalHours;
         document.getElementById('totalThemes').textContent = stats.totalThemes;
         document.getElementById('totalActivities').textContent = stats.totalActivities;
         document.getElementById('completedActivities').textContent = stats.completedActivities;
 
-        // Mise à jour de la barre de progression
         const progress = (stats.totalHours / CONFIG.maxTotalHours) * 100;
         const progressBar = document.getElementById('hoursProgress');
         if (progressBar) {
             progressBar.style.width = Math.min(progress, 100) + '%';
-
-            // Couleur selon l'état
             if (stats.totalHours === CONFIG.maxTotalHours) {
                 progressBar.style.background = 'var(--success-color)';
             } else if (stats.totalHours > CONFIG.maxTotalHours) {
@@ -479,13 +445,9 @@ const UI = {
     updateValidationAlerts() {
         const messages = this.manager.getValidationMessages();
         const alertsContainer = document.getElementById('validationAlerts');
-
         if (!alertsContainer) return;
-
         alertsContainer.innerHTML = messages.map(msg => `
-            <div class="alert alert-${msg.type}">
-                ${msg.text}
-            </div>
+            <div class="alert alert-${msg.type}">${msg.text}</div>
         `).join('');
     },
 
@@ -508,13 +470,13 @@ const UI = {
             <tr>
                 <td><span class="theme-badge">${activity.theme}</span></td>
                 <td><strong>${activity.name}</strong></td>
-                <td>${CONFIG.activityTypes[activity.type].label}</td>
+                <td>${CONFIG.activityTypes[activity.type]?.label || activity.type}</td>
                 <td>${new Date(activity.date).toLocaleDateString('fr-FR')}</td>
                 <td><strong>${activity.hours}h</strong></td>
                 <td>${activity.proof}${activity.proofImages && activity.proofImages.length > 0 ? ` <span title="${activity.proofImages.length} photo(s)">📷${activity.proofImages.length}</span>` : ''}</td>
                 <td>
-                    <span class="status-badge status-${CONFIG.statuses[activity.status].class}">
-                        ${CONFIG.statuses[activity.status].icon} ${activity.status}
+                    <span class="status-badge status-${CONFIG.statuses[activity.status]?.class || 'todo'}">
+                        ${CONFIG.statuses[activity.status]?.icon || '⏳'} ${activity.status}
                     </span>
                 </td>
                 <td>
@@ -524,12 +486,8 @@ const UI = {
         }
                 </td>
                 <td>
-                    <button class="btn-icon" onclick="UI.editActivity(${activity.id})" title="Modifier">
-                        ✏️
-                    </button>
-                    <button class="btn-icon" onclick="UI.deleteActivity(${activity.id})" title="Supprimer">
-                        🗑️
-                    </button>
+                    <button class="btn-icon" onclick="UI.editActivity(${activity.id})" title="Modifier">✏️</button>
+                    <button class="btn-icon" onclick="UI.deleteActivity(${activity.id})" title="Supprimer">🗑️</button>
                 </td>
             </tr>
         `).join('');
@@ -566,22 +524,14 @@ const UI = {
 
     getFilteredActivities() {
         let activities = [...this.manager.activities];
-
         const themeFilter = document.getElementById('themeFilter')?.value;
         const statusFilter = document.getElementById('statusFilter')?.value;
-
-        if (themeFilter) {
-            activities = activities.filter(a => a.theme === themeFilter);
-        }
-
-        if (statusFilter) {
-            activities = activities.filter(a => a.status === statusFilter);
-        }
-
+        if (themeFilter) activities = activities.filter(a => a.theme === themeFilter);
+        if (statusFilter) activities = activities.filter(a => a.status === statusFilter);
         return activities;
     },
 
-    handleSubmit(e) {
+    async handleSubmit(e) {
         e.preventDefault();
 
         const activityData = {
@@ -598,13 +548,12 @@ const UI = {
 
         try {
             if (this.manager.currentEditId) {
-                this.manager.update(this.manager.currentEditId, activityData);
+                await this.manager.update(this.manager.currentEditId, activityData);
                 this.showNotification('Activité mise à jour avec succès', 'success');
             } else {
-                this.manager.add(activityData);
+                await this.manager.add(activityData);
                 this.showNotification('Activité ajoutée avec succès', 'success');
             }
-
             this.closeModal();
             this.render();
         } catch (error) {
@@ -630,20 +579,22 @@ const UI = {
         document.getElementById('activityAnalysis').value = activity.analysis;
 
         const charCount = document.getElementById('charCount');
-        if (charCount) {
-            charCount.textContent = activity.analysis.length;
-        }
+        if (charCount) charCount.textContent = activity.analysis.length;
 
         this.renderPhotoPreview();
         this.updateHoursLimit();
         this.openModal();
     },
 
-    deleteActivity(id) {
+    async deleteActivity(id) {
         if (confirm('Êtes-vous sûr de vouloir supprimer cette activité ?')) {
-            if (this.manager.delete(id)) {
-                this.showNotification('Activité supprimée', 'success');
-                this.render();
+            try {
+                if (await this.manager.delete(id)) {
+                    this.showNotification('Activité supprimée', 'success');
+                    this.render();
+                }
+            } catch (error) {
+                this.showNotification('Erreur lors de la suppression', 'error');
             }
         }
     },
@@ -654,7 +605,6 @@ const UI = {
 
         const modal = document.getElementById('analysisModal');
         const content = document.getElementById('analysisContent');
-
         if (!modal || !content) return;
 
         content.innerHTML = `
@@ -692,9 +642,7 @@ const UI = {
 
     openModal() {
         const modal = document.getElementById('activityModal');
-        if (modal) {
-            modal.classList.add('active');
-        }
+        if (modal) modal.classList.add('active');
     },
 
     closeModal() {
@@ -711,31 +659,23 @@ const UI = {
 
     closeAnalysisModal() {
         const modal = document.getElementById('analysisModal');
-        if (modal) {
-            modal.classList.remove('active');
-        }
+        if (modal) modal.classList.remove('active');
     },
 
     updateHoursLimit() {
         const type = document.getElementById('activityType').value;
         const helpText = document.getElementById('hoursHelp');
-
         if (!type || !helpText) return;
 
         const typeConfig = CONFIG.activityTypes[type];
         if (typeConfig) {
             helpText.textContent = `(max ${typeConfig.maxHours}h)`;
-
             if (typeConfig.maxCount) {
-                const currentCount = this.manager.activities.filter(a => a.type === type).length;
+                let currentCount = this.manager.activities.filter(a => a.type === type).length;
                 if (this.manager.currentEditId) {
-                    const currentActivity = this.manager.activities.find(a => a.id === this.manager.currentEditId);
-                    if (currentActivity && currentActivity.type === type) {
-                        // Ne pas compter l'activité en cours d'édition
-                        currentCount--;
-                    }
+                    const curr = this.manager.activities.find(a => a.id === this.manager.currentEditId);
+                    if (curr && curr.type === type) currentCount--;
                 }
-
                 if (currentCount >= typeConfig.maxCount) {
                     helpText.textContent += ` - Limite atteinte (${typeConfig.maxCount} max)`;
                     helpText.style.color = 'var(--error-color)';
@@ -748,7 +688,7 @@ const UI = {
     },
 
     exportData() {
-        const json = this.manager.exportToJSON();
+        const json = JSON.stringify(this.manager.activities, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -756,7 +696,6 @@ const UI = {
         a.download = `portfolio_activites_${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
-
         this.showNotification('Données exportées avec succès', 'success');
     },
 
@@ -769,12 +708,10 @@ const UI = {
         a.download = `rapport_portfolio_${new Date().toISOString().split('T')[0]}.md`;
         a.click();
         URL.revokeObjectURL(url);
-
         this.showNotification('Rapport généré avec succès', 'success');
     },
 
     showNotification(message, type = 'info') {
-        // Créer une notification temporaire
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
@@ -784,8 +721,7 @@ const UI = {
             right: 20px;
             padding: 15px 20px;
             background: ${type === 'success' ? 'var(--success-color)' :
-            type === 'error' ? 'var(--error-color)' :
-                'var(--info-color)'};
+            type === 'error' ? 'var(--error-color)' : 'var(--info-color)'};
             color: white;
             border-radius: 8px;
             box-shadow: var(--shadow-lg);
@@ -794,12 +730,9 @@ const UI = {
         `;
 
         document.body.appendChild(notification);
-
         setTimeout(() => {
             notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
+            setTimeout(() => { document.body.removeChild(notification); }, 300);
         }, 3000);
     }
 };
@@ -816,29 +749,12 @@ window.openAddModal = function() {
     UI.openModal();
 };
 
-window.closeModal = function() {
-    UI.closeModal();
-};
-
-window.closeAnalysisModal = function() {
-    UI.closeAnalysisModal();
-};
-
-window.filterActivities = function() {
-    UI.renderTable();
-};
-
-window.exportData = function() {
-    UI.exportData();
-};
-
-window.generateReport = function() {
-    UI.generateReport();
-};
-
-window.updateHoursLimit = function() {
-    UI.updateHoursLimit();
-};
+window.closeModal = function() { UI.closeModal(); };
+window.closeAnalysisModal = function() { UI.closeAnalysisModal(); };
+window.filterActivities = function() { UI.renderTable(); };
+window.exportData = function() { UI.exportData(); };
+window.generateReport = function() { UI.generateReport(); };
+window.updateHoursLimit = function() { UI.updateHoursLimit(); };
 
 window.editAnalysis = function() {
     const modal = document.getElementById('analysisModal');
@@ -849,15 +765,12 @@ window.editAnalysis = function() {
     }
 };
 
-window.printAnalysis = function() {
-    window.print();
-};
+window.printAnalysis = function() { window.print(); };
 
 // ===================================
 // Initialisation
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialiser uniquement sur la page portfolio-activites
     if (document.getElementById('activitiesTable')) {
         UI.init();
     }

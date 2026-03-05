@@ -90,9 +90,9 @@ const CONFIG = {
     ],
 
     statuses: {
-        'À faire': { class: 'todo' },
-        'En cours': { class: 'progress' },
-        'Complété': { class: 'completed' }
+        'À faire': { class: 'todo', icon: '' },
+        'En cours': { class: 'progress', icon: '' },
+        'Complété': { class: 'completed', icon: '' }
     }
 };
 
@@ -524,10 +524,14 @@ const UI = {
 
     getFilteredActivities() {
         let activities = [...this.manager.activities];
-        const themeFilter = document.getElementById('themeFilter')?.value;
-        const statusFilter = document.getElementById('statusFilter')?.value;
-        if (themeFilter) activities = activities.filter(a => a.theme === themeFilter);
-        if (statusFilter) activities = activities.filter(a => a.status === statusFilter);
+        const themeFilter = document.getElementById('themeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        if (themeFilter && themeFilter.value && themeFilter.value !== '') {
+            activities = activities.filter(a => a.theme === themeFilter.value);
+        }
+        if (statusFilter && statusFilter.value && statusFilter.value !== '') {
+            activities = activities.filter(a => a.status === statusFilter.value);
+        }
         return activities;
     },
 

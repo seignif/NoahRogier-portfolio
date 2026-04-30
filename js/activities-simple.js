@@ -349,7 +349,7 @@ var UI = {
             var tl = (CONFIG.activityTypes[a.type] || {}).label || a.type;
             var sc = (CONFIG.statuses[a.status] || {}).class || 'todo';
             var ds = ''; try { ds = new Date(a.date).toLocaleDateString('fr-FR'); } catch(e) { ds = a.date; }
-            var pi = (a.proofImages && a.proofImages.length > 0) ? ' 📷' + a.proofImages.length : '';
+            var pi = (a.proofImages && a.proofImages.length > 0) ? ' (' + a.proofImages.length + ' photo' + (a.proofImages.length > 1 ? 's' : '') + ')' : '';
 
             html += '<tr>';
             html += '<td><span class="theme-badge">' + a.theme + '</span></td>';
@@ -360,7 +360,7 @@ var UI = {
             html += '<td>' + a.proof + pi + '</td>';
             html += '<td><span class="status-badge status-' + sc + '">' + a.status + '</span></td>';
             html += '<td>' + (a.analysis ? '<button class="btn-link" onclick="UI.showAnalysis(' + a.id + ')">Voir</button>' : '<button class="btn-link" onclick="UI.editActivity(' + a.id + ')">Ajouter</button>') + '</td>';
-            html += '<td><button class="btn-icon" onclick="UI.editActivity(' + a.id + ')">✏️</button> <button class="btn-icon" onclick="UI.deleteActivity(' + a.id + ')">🗑️</button></td>';
+            html += '<td><button class="btn-icon" onclick="UI.editActivity(' + a.id + ')">Modifier</button> <button class="btn-icon" onclick="UI.deleteActivity(' + a.id + ')">Supprimer</button></td>';
             html += '</tr>';
         }
         tbody.innerHTML = html;

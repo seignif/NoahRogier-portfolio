@@ -56,7 +56,7 @@ var CONFIG = {
         'projet': { label: 'Projet personnel', maxCount: null, maxHours: 10 },
         'autre': { label: 'Autre', maxCount: null, maxHours: 10 }
     },
-    themes: ['Développement','Réseaux','Sécurité','Électronique/IoT','Soft skills','Langues','Communication','Droit IT'],
+    themes: ['Développement','Réseaux','Sécurité','Électronique/IoT','Soft skills','Langues','Communication','Droit IT','Gestion de projet'],
     statuses: {
         'À faire': { class: 'todo' },
         'En cours': { class: 'progress' },

@@ -450,7 +450,10 @@ var UI = {
         catch (err) { this.showNotification(err.message, 'error'); }
     },
 
+    currentAnalysisId: null,
+
     showAnalysis: function(id) {
+        this.currentAnalysisId = id;
         var a = null;
         for (var i = 0; i < this.manager.activities.length; i++) { if (this.manager.activities[i].id === id) { a = this.manager.activities[i]; break; } }
         if (!a) return;
@@ -521,6 +524,7 @@ window.generateReport = function() { UI.generateReport(); };
 window.updateHoursLimit = function() { UI.updateHoursLimit(); };
 window.handleSubmit = function(e) { e.preventDefault(); UI.handleSubmit(e); };
 window.printAnalysis = function() { window.print(); };
+window.editAnalysis = function() { var id = UI.currentAnalysisId; UI.closeAnalysisModal(); if (id) UI.editActivity(id); };
 
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('activitiesTable')) UI.init();

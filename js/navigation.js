@@ -123,11 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-
-                // Animation spécifique pour les compteurs
-                if (entry.target.classList.contains('stat-card')) {
-                    animateCounter(entry.target.querySelector('.stat-value'));
-                }
             }
         });
     }, observerOptions);

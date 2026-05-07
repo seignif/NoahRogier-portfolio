@@ -14,20 +14,25 @@ var SUPABASE_KEY = 'sb_publishable_uFYg2zsE2UJHhDwCDoNxtw_P7cL0xJJ';
 var supabase = {
     fetch: async function(endpoint, options) {
         options = options || {};
+        var method = options.method || 'GET';
+        var headers = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json'
+        };
+        if (method !== 'GET' && method !== 'DELETE') {
+            headers['Prefer'] = options.prefer || 'return=representation';
+        }
         var res = await fetch(SUPABASE_URL + '/rest/v1/' + endpoint, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY,
-                'Content-Type': 'application/json',
-                'Prefer': options.prefer || 'return=representation'
-            },
-            method: options.method || 'GET',
+            headers: headers,
+            method: method,
             body: options.body ? JSON.stringify(options.body) : undefined
         });
         if (!res.ok) {
             var err = await res.text();
-            throw new Error('Supabase: ' + err);
+            throw new Error('Supabase ' + res.status + ': ' + err);
         }
+        if (method === 'DELETE') return true;
         return res.json();
     },
     getAll: function() { return this.fetch('activities?select=*&order=date.desc'); },
@@ -117,14 +122,16 @@ var ActivityManager = {
     loadData: async function() {
         try {
             var rows = await supabase.getAll();
-            console.log('[Supabase] Loaded ' + rows.length + ' rows');
             this.activities = [];
             for (var i = 0; i < rows.length; i++) {
                 this.activities.push(new Activity(rows[i]));
             }
+            return true;
         } catch (err) {
             console.error('[Supabase] Error:', err);
             this.activities = [];
+            this.loadError = err.message;
+            return false;
         }
     },
 
@@ -232,12 +239,12 @@ var UI = {
     pendingImages: [],
 
     init: async function() {
-        console.log('[UI] init start');
-        await this.manager.loadData();
-        console.log('[UI] activities loaded:', this.manager.activities.length);
+        var ok = await this.manager.loadData();
         this.bindEvents();
         this.render();
-        console.log('[UI] init done');
+        if (!ok) {
+            this.showNotification('Erreur de connexion à la base de données: ' + (this.manager.loadError || 'inconnue'), 'error');
+        }
     },
 
     bindEvents: function() {
@@ -360,7 +367,7 @@ var UI = {
             html += '<td>' + a.proof + pi + '</td>';
             html += '<td><span class="status-badge status-' + sc + '">' + a.status + '</span></td>';
             html += '<td>' + (a.analysis ? '<button class="btn-link" onclick="UI.showAnalysis(' + a.id + ')">Voir</button>' : '<button class="btn-link" onclick="UI.editActivity(' + a.id + ')">Ajouter</button>') + '</td>';
-            html += '<td><button class="btn-icon" onclick="UI.editActivity(' + a.id + ')">Modifier</button> <button class="btn-icon" onclick="UI.deleteActivity(' + a.id + ')">Supprimer</button></td>';
+            html += '<td style="white-space:nowrap"><button class="btn-icon" onclick="UI.editActivity(' + a.id + ')">Modifier</button><br><button class="btn-icon" onclick="UI.deleteActivity(' + a.id + ')">Supprimer</button></td>';
             html += '</tr>';
         }
         tbody.innerHTML = html;

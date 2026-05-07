@@ -312,14 +312,17 @@ tbody tr:last-child td {
 .btn-icon {
     background: none;
     border: none;
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
     cursor: pointer;
-    padding: var(--spacing-xs);
-    transition: transform var(--transition-base);
+    padding: 2px var(--spacing-xs);
+    transition: opacity var(--transition-base);
+    display: block;
+    width: 100%;
+    text-align: left;
 }
 
 .btn-icon:hover {
-    transform: scale(1.2);
+    opacity: 0.7;
 }
 
 /* Empty State */

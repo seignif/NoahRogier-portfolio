@@ -466,7 +466,7 @@ var UI = {
         h += '<div class="analysis-proof"><strong>Preuve:</strong> ' + a.proof + '</div>';
         if (a.proofImages && a.proofImages.length > 0) {
             h += '<div class="analysis-photos"><strong>Photos:</strong><div class="photo-gallery">';
-            for (var j = 0; j < a.proofImages.length; j++) h += '<a href="' + a.proofImages[j] + '" target="_blank" class="gallery-item"><img src="' + a.proofImages[j] + '"></a>';
+            for (var j = 0; j < a.proofImages.length; j++) h += '<div class="gallery-item" onclick="UI.openLightbox(\'' + j + '\')" style="cursor:pointer"><img src="' + a.proofImages[j] + '"></div>';
             h += '</div></div>';
         }
         content.innerHTML = h;
@@ -479,6 +479,22 @@ var UI = {
         if (m) { m.classList.remove('active'); document.getElementById('activityForm').reset(); this.manager.currentEditId = null; this.pendingImages = []; this.renderPhotoPreview(); document.getElementById('modalTitle').textContent = 'Ajouter une activité'; }
     },
     closeAnalysisModal: function() { var m = document.getElementById('analysisModal'); if (m) m.classList.remove('active'); },
+
+    openLightbox: function(idx) {
+        var a = null;
+        for (var i = 0; i < this.manager.activities.length; i++) { if (this.manager.activities[i].id === this.currentAnalysisId) { a = this.manager.activities[i]; break; } }
+        if (!a || !a.proofImages || !a.proofImages[idx]) return;
+        var existing = document.getElementById('lightbox'); if (existing) existing.remove();
+        var lb = document.createElement('div');
+        lb.id = 'lightbox';
+        lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+        lb.onclick = function() { lb.remove(); };
+        var img = document.createElement('img');
+        img.src = a.proofImages[idx];
+        img.style.cssText = 'max-width:90%;max-height:90vh;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5);';
+        lb.appendChild(img);
+        document.body.appendChild(lb);
+    },
 
     updateHoursLimit: function() {
         var type = document.getElementById('activityType').value, ht = document.getElementById('hoursHelp');
@@ -525,6 +541,7 @@ window.updateHoursLimit = function() { UI.updateHoursLimit(); };
 window.handleSubmit = function(e) { e.preventDefault(); UI.handleSubmit(e); };
 window.printAnalysis = function() { window.print(); };
 window.editAnalysis = function() { var id = UI.currentAnalysisId; UI.closeAnalysisModal(); if (id) UI.editActivity(id); };
+window.closeLightbox = function() { var lb = document.getElementById('lightbox'); if (lb) lb.remove(); };
 
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('activitiesTable')) UI.init();
